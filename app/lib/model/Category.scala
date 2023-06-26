@@ -3,7 +3,6 @@ package lib.model
 import ixias.model._
 import ixias.util.EnumStatus
 import lib.model.Category.CategoryColor
-import lib.model.Category.CategoryColor.IS_FRONTEND
 
 import java.time.LocalDateTime
 
@@ -19,8 +18,6 @@ case class Category (
 object Category {
   val Id = the[Identity[Id]]
   type Id = Long @@ Category
-  type WithNoId = Entity.WithNoId[Id, Category]
-  type EmbeddedId = Entity.EmbeddedId[Id, Category]
 
   sealed abstract class CategoryColor(val code: Short, val color: String) extends EnumStatus
   object CategoryColor extends EnumStatus.Of[CategoryColor] {

@@ -25,9 +25,10 @@ case class CategoryRepository[P <: JdbcProfile]()(implicit val driver: P)
   /**
    * Get All Category Data
    */
-  def getAll(): Future[Seq[EntityEmbeddedId]] =
+  def getAll: Future[Seq[EntityEmbeddedId]] =
     RunDBAction(CategoryTable, "slave") {
       _
+        .sortBy(_.id)
         .result
     }
 

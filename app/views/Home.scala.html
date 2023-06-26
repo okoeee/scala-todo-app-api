@@ -6,15 +6,15 @@
 
 @(vv: model.ViewValueCommon, todos: Seq[model.ViewValueTodo])
 @common.Default(vv){
-   <ul>
-    @for(todo <- todos) {
-     <li>
-      <span>@todo.title</span>
-      <span>@todo.body</span>
-      <span>@todo.status</span>
-      <span style="color: @todo.categoryColor.color;">@todo.categoryName</span>
-      <span>@todo.categoryColor.color</span>
-     </li>
-    }
-  </ul>
+   @for(todo <- todos) {
+    <div class="card bg-white uk-flex uk-flex-between uk-flex-middle uk-margin-bottom">
+     <div class="card-left">
+      <p class="uk-margin-small-bottom">@todo.status.name</p>
+      <h3 class="card__title uk-margin-remove-top uk-margin-remove-bottom">@todo.title</h3>
+      <p class="uk-margin-remove-top uk-margin-small-bottom">@todo.body</p>
+      <span class="category" style="background-color: @todo.categoryColor.color;">@todo.categoryName</span>
+     </div>
+     <div class="card-right"></div>
+    </div>
+   }
 }
