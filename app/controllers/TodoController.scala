@@ -18,22 +18,31 @@ import scala.concurrent.ExecutionContext.Implicits.global
 @Singleton
 class TodoController @Inject()(val controllerComponents: ControllerComponents) extends BaseController with play.api.i18n.I18nSupport {
 
-  val todoForm: Form[TodoForm] = Form(
+  private val todoForm: Form[TodoForm] = Form(
     mapping(
-      "title" -> nonEmptyText,
-      "body" -> nonEmptyText,
-      "category" -> shortNumber
+      "title" -> nonEmptyText.verifying(
+        "タイトルは英数字・日本語を入力することができ、改行を含むことができません",
+        title => title.matches("([^\\x01-\\x7E]|\\w)+") && !title.contains("\n")
+      ),
+      "body" -> nonEmptyText.verifying(
+        "本文は英数字・日本語のみを入力することができます",
+        body => body.matches("([^\\x01-\\x7E]|\\w)+")
+      ),
+      "category" -> shortNumber.verifying(
+        "登録されているカテゴリーのみを入力してください",
+        category => selectValues.exists{case (code, _) => code.toShort == category}
+      )
     )(TodoForm.apply)(TodoForm.unapply)
   )
 
-  val vv = ViewValueHome(
+  private val vv = ViewValueHome(
     title = "Todo Create",
     cssSrc = Seq("uikit.min.css", "main.css"),
     jsSrc = Seq("main.js")
   )
 
-  val cc = Category.CategoryColor
-  val selectValues = Seq(
+  private val cc = Category.CategoryColor
+  private val selectValues = Seq(
     (cc.IS_FRONTEND.code.toString, cc.IS_FRONTEND.name),
     (cc.IS_BACKEND.code.toString, cc.IS_BACKEND.name),
     (cc.IS_INFRA.code.toString, cc.IS_INFRA.name),
