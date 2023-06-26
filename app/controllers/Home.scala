@@ -15,8 +15,8 @@ class HomeController @Inject()(val controllerComponents: ControllerComponents) e
 
     val vv = ViewValueHome(
       title  = "Home",
-      cssSrc = Seq("main.css", "uikit.min.css"),
-      jsSrc  = Seq("main.js")
+      cssSrc = Seq("uikit.min.css", "main.css"),
+      jsSrc  = Seq("uikit.min.js", "uikit-icons.min.js", "main.js")
     )
 
     val futureSeqViewValueTodo = for {
@@ -27,6 +27,7 @@ class HomeController @Inject()(val controllerComponents: ControllerComponents) e
         val t = todo.v
         val c = categories.find(_.id == t.categoryId).getOrElse(throw new NoSuchElementException).v
         ViewValueTodo(
+          id = todo.id,
           title = t.title,
           body = t.body,
           status = t.state,

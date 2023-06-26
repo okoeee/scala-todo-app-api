@@ -1,10 +1,10 @@
 @import helper._
 @import requests.TodoForm
 
-@(vv: model.ViewValueCommon, todoForm: Form[TodoForm], selectValues: Seq[(String, String)])(implicit req: RequestHeader, message: Messages)
+@(vv: model.ViewValueCommon, todoForm: Form[TodoForm], preTodoId: Long, selectValues: Seq[(String, String)])(implicit req: RequestHeader, message: Messages)
 
 @common.Default(vv){
-    @form(routes.TodoController.createAction) {
+    @form(routes.TodoController.updateAction(preTodoId)) {
         @CSRF.formField
         @inputText(todoForm("title"), 'class -> "uk-input form-width")
         @inputText(todoForm("body"), 'class -> "uk-input form-width")

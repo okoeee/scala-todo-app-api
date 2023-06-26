@@ -7,12 +7,17 @@
  @for(todo <- todos) {
   <div class="card bg-white uk-flex uk-flex-between uk-flex-middle uk-margin-bottom">
    <div class="card-left">
-    <p class="uk-margin-small-bottom">@todo.status.name</p>
+    <div class="uk-margin-small-bottom">
+     <span class="uk-margin-small-bottom">@todo.status.name</span>
+     <span style="margin: 0 4px;">|</span>
+     <span class="category" style="background-color: @todo.categoryColor.color;">@todo.categoryName</span>
+    </div>
     <h3 class="card__title uk-margin-remove-top uk-margin-remove-bottom">@todo.title</h3>
-    <p class="uk-margin-remove-top uk-margin-small-bottom">@todo.body</p>
-    <span class="category" style="background-color: @todo.categoryColor.color;">@todo.categoryName</span>
+    <p class="uk-margin-remove">@todo.body</p>
    </div>
-   <div class="card-right"></div>
+   <div class="card-right">
+    <a href="@routes.TodoController.update(todo.id)" uk-icon="icon: file-edit"></a>
+   </div>
   </div>
  }
 }
