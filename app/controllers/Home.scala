@@ -12,12 +12,14 @@ import model.ViewValueHome
 import lib.persistence.onMySQL.TodoRepository
 import responses.Todo
 
+import scala.concurrent.ExecutionContext.Implicits.global
+
 @Singleton
 class HomeController @Inject()(val controllerComponents: ControllerComponents) extends BaseController {
 
   def index(): Action[AnyContent] = Action.async { implicit req =>
 
-    TodoRepository.getAll.map{ todos =>
+    TodoRepository.getAll.map { todos =>
       val vv = ViewValueHome(
         title  = "Home",
         cssSrc = Seq("main.css"),

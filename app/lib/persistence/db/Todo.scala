@@ -27,12 +27,12 @@ case class TodoTable[P <: JdbcProfile]()(implicit val driver: P)
     /* @2 */ def categoryId = column[Long]("category_id", O.UInt64)
     /* @3 */ def title = column[String]("title", O.Utf8Char255)
     /* @4 */ def body = column[String]("title", O.Utf8Char255)
-    /* @5 */ def state = column[Int]("state", O.UInt8)
+    /* @5 */ def state = column[Status]("state", O.UInt8)
     /* @6 */ def updatedAt = column[LocalDateTime]("updated_at", O.TsCurrent)
     /* @7 */ def createdAt = column[LocalDateTime]("created_at", O.Ts)
 
     type TableElementTuple = (
-      Option[Id], Long, String, String, Int, LocalDateTime, LocalDateTime
+      Option[Id], Long, String, String, Status, LocalDateTime, LocalDateTime
     )
 
     def * = (id.?, categoryId, title, body, state, updatedAt, createdAt) <> (
