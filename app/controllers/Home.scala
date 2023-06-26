@@ -10,7 +10,7 @@ import lib.model.Category
 
 import javax.inject._
 import play.api.mvc._
-import model.ViewValueHome
+import model.{ViewValueHome, ViewValueTodo}
 import lib.persistence.onMySQL.{CategoryRepository, TodoRepository}
 import responses.Todo
 
@@ -29,15 +29,25 @@ class HomeController @Inject()(val controllerComponents: ControllerComponents) e
       jsSrc  = Seq("main.js")
     )
 
-    CategoryRepository.getAll.map { cs =>
-      cs.map(_.v.name).foreach(println(_))
+    val futureSeqViewValueTodo = for {
+      todos <- TodoRepository.getAll
+      categories <- CategoryRepository.getAll
+    } yield {
+      todos.map { todo =>
+        val t = todo.v
+        val c = categories.find(_.id == t.categoryId).getOrElse(throw new NoSuchElementException).v
+        ViewValueTodo(
+          title = t.title,
+          body = t.body,
+          status = t.state,
+          categoryName = c.name,
+          categoryColor = c.categoryColor
+        )
+      }
     }
 
-    TodoRepository.getAll.map { todos =>
-      val todosResponse = todos.map { todo =>
-        Todo(todo.v.title)
-      }
-      Ok(views.html.Home(vv, todosResponse))
+    futureSeqViewValueTodo.map { seqViewValueTodo =>
+      Ok(views.html.Home(vv, seqViewValueTodo))
     }
 
   }

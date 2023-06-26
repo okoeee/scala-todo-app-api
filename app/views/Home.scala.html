@@ -4,13 +4,17 @@
  *
  *@
 
-@(vv: model.ViewValueCommon, todos: Seq[responses.Todo])
+@(vv: model.ViewValueCommon, todos: Seq[model.ViewValueTodo])
 @common.Default(vv){
    <ul>
-    <li><a>カテゴリー一覧</a></li>
-    <li><a>Todo一覧</a></li>
     @for(todo <- todos) {
-     <li>@todo.title</li>
+     <li>
+      <span>@todo.title</span>
+      <span>@todo.body</span>
+      <span>@todo.status</span>
+      <span style="color: @todo.categoryColor.color;">@todo.categoryName</span>
+      <span>@todo.categoryColor.color</span>
+     </li>
     }
- </ul>
+  </ul>
 }
