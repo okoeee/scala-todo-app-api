@@ -22,8 +22,8 @@ case class UserRepository[P <: JdbcProfile]()(implicit val driver: P)
     * Get User Data
     */
   def get(id: Id): Future[Option[EntityEmbeddedId]] =
-    RunDBAction(UserTable, "slave") { u =>
-      u.filter(_.id === id)
+    RunDBAction(UserTable, "slave") { _
+      .filter(_.id === id)
       .result.headOption
   }
 
