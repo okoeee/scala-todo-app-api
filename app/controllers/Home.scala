@@ -1,8 +1,3 @@
-/**
- *
- * to do sample project
- *
- */
 
 package controllers
 

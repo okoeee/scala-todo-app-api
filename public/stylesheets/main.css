@@ -69,6 +69,12 @@ body {
   font-weight: bold;
 }
 
+/* form */
+.form-width {
+  width: 100%;
+  max-width: 400px;
+}
+
 /* category */
 .category {
   color: white;

@@ -1,0 +1,14 @@
+@import helper._
+@import requests.TodoForm
+
+@(vv: model.ViewValueCommon, todoForm: Form[TodoForm], selectValues: Seq[(String, String)])(implicit req: RequestHeader, message: Messages)
+
+@common.Default(vv){
+    @form(routes.TodoController.createAction) {
+        @CSRF.formField
+        @inputText(todoForm("title"), 'class -> "uk-input form-width")
+        @inputText(todoForm("body"), 'class -> "uk-input form-width")
+        @select(field = todoForm("category"), options = selectValues, 'class -> "uk-select form-width")
+        <input type="submit" class="uk-button uk-button-default bg-white">
+    }
+}
