@@ -10,12 +10,6 @@ body {
 .header {
   height:            70px;
   background-color:  #24292F;
-  width:             100%;
-}
-
-.header .header__content {
-  width:      1080px;
-  margin:     auto;
 }
 
 .header .header__logo {
@@ -42,4 +36,43 @@ body {
 /******* フォームのinfoを非表示に *******/
 .info {
   display: none;
+}
+
+/* layout */
+.h-100vh {
+  height: 100vh;
+}
+.container {
+  padding: 0 16px;
+}
+
+/* backgroud color */
+.bg-white {
+  background-color: #fff;
+}
+.bg-gray {
+  background-color: #d4d4d4;
+}
+
+/* font */
+.font-small {
+  font-size: .8em;
+}
+
+/* card */
+.card {
+  padding: 16px;
+  border-radius: 16px;
+}
+.card__title {
+  font-size: 1.2em;
+  font-weight: bold;
+}
+
+/* category */
+.category {
+  color: white;
+  font-size: .8em;
+  padding: 6px;
+  border-radius: 16px;
 }
