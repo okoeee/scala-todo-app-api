@@ -10,6 +10,7 @@
         @inputText(todoForm("body"), 'class -> "uk-input form-width")
         @select(field = todoForm("categoryId"), options = optionsOfCategoryId, 'class -> "uk-select form-width")
         @select(field = todoForm("state"), options = optionsOfTodoStatus, 'class -> "uk-select form-width", 'disabled -> "disabled")
+
         <input type="submit" class="uk-button uk-button-default bg-white">
     }
 }

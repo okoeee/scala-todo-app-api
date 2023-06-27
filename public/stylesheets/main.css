@@ -82,3 +82,8 @@ body {
   padding: 6px;
   border-radius: 16px;
 }
+
+/* a */
+a.a-hover-none {
+  color: currentColor
+}

@@ -7,7 +7,7 @@ import javax.inject._
 import play.api.mvc._
 import play.api.data._
 import play.api.data.Forms._
-import model.ViewValueHome
+import model.{ViewValueHome, ViewValueTodo}
 import play.api.data.Form
 import requests.TodoForm
 
@@ -66,6 +66,38 @@ class TodoController @Inject()(val controllerComponents: ControllerComponents)
     (ts.IS_COMPLETED.code.toString, ts.IS_COMPLETED.name)
   )
 
+  def index(): Action[AnyContent] = Action.async { implicit req =>
+    val vv = ViewValueHome(
+      title = "Home",
+      cssSrc = Seq("uikit.min.css", "main.css"),
+      jsSrc = Seq("uikit.min.js", "uikit-icons.min.js", "main.js")
+    )
+
+    val futureSeqViewValueTodo = for {
+      todos <- TodoRepository.getAll
+      categories <- CategoryRepository.getAll
+    } yield {
+      todos.map { todo =>
+        val t = todo.v
+        val c = categories
+          .find(_.id == t.categoryId)
+          .getOrElse(throw new NoSuchElementException)
+          .v
+        ViewValueTodo(
+          id = todo.id,
+          title = t.title,
+          body = t.body,
+          status = t.state,
+          categoryName = c.name,
+          categoryColor = c.categoryColor
+        )
+      }
+    }
+    futureSeqViewValueTodo.map { seqViewValueTodo =>
+      Ok(views.html.todo.Index(vv, seqViewValueTodo, todoForm))
+    }
+  }
+
   def create: Action[AnyContent] = Action { implicit req =>
     Ok(
       views.html.todo
@@ -95,7 +127,7 @@ class TodoController @Inject()(val controllerComponents: ControllerComponents)
           )
 
           TodoRepository.add(todoWithNoId).map { _ =>
-            Redirect(routes.HomeController.index())
+            Redirect(routes.TodoController.index())
           }
         }
       )
@@ -123,7 +155,7 @@ class TodoController @Inject()(val controllerComponents: ControllerComponents)
                 )))
         }
         .getOrElse {
-          Future.successful(Redirect(routes.HomeController.index()))
+          Future.successful(Redirect(routes.TodoController.index()))
         }
     }
   }
@@ -148,7 +180,7 @@ class TodoController @Inject()(val controllerComponents: ControllerComponents)
           todo => {
             TodoRepository.get(Todo.Id(id)).flatMap {
               case None =>
-                Future.successful(Redirect(routes.HomeController.index()))
+                Future.successful(Redirect(routes.TodoController.index()))
               case Some(embeddedTodo) =>
                 val updatedTodo = embeddedTodo.map(
                   _.copy(
@@ -159,11 +191,23 @@ class TodoController @Inject()(val controllerComponents: ControllerComponents)
                   ))
 
                 TodoRepository.update(updatedTodo).map { _ =>
-                  Redirect(routes.HomeController.index())
+                  Redirect(routes.TodoController.index())
                 }
             }
           }
         )
+  }
+
+  def removeAction(id: Long): Action[AnyContent] = Action.async {
+    implicit req =>
+      TodoRepository.get(Todo.Id(id)).flatMap {
+        case None =>
+          Future.successful(Redirect(routes.TodoController.index()))
+        case Some(embeddedTodo) =>
+          TodoRepository.remove(embeddedTodo.id).map { _ =>
+            Redirect(routes.TodoController.index())
+          }
+      }
   }
 
 }
