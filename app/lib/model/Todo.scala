@@ -8,7 +8,7 @@ import java.time.LocalDateTime
 
 case class Todo(
   id: Option[Todo.Id],
-  categoryId: Long,
+  categoryId: Category.Id,
   title: String,
   body: String,
   state: Status,
@@ -28,10 +28,7 @@ object Todo {
     case object IS_COMPLETED extends Status(code = 2, name = "完了")
   }
 
-  def apply(categoryId: Long,
-            title: String,
-            body: String,
-            state: Status): Todo#WithNoId =
+  def apply(categoryId: Category.Id, title: String, body: String, state: Status): Todo#WithNoId =
     new Todo(
       id = None,
       categoryId = categoryId,

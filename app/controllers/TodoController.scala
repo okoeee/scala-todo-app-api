@@ -73,24 +73,20 @@ class TodoController @Inject()(val controllerComponents: ControllerComponents)
       jsSrc = Seq("uikit.min.js", "uikit-icons.min.js", "main.js")
     )
 
-    val futureSeqViewValueTodo = for {
-      todos <- TodoRepository.getAll
-      categories <- CategoryRepository.getAll
-    } yield {
-      todos.map { todo =>
+    val futureSeqViewValueTodo = (TodoRepository.getAll zip CategoryRepository.getAll).map { case (todos, categories) =>
+      todos.flatMap { todo =>
         val t = todo.v
-        val c = categories
-          .find(_.id == t.categoryId)
-          .getOrElse(throw new NoSuchElementException)
-          .v
-        ViewValueTodo(
-          id = todo.id,
-          title = t.title,
-          body = t.body,
-          status = t.state,
-          categoryName = c.name,
-          categoryColor = c.categoryColor
-        )
+        val c = categories.find(_.id == t.categoryId).map(_.v)
+        c.map { category =>
+          ViewValueTodo(
+            id = todo.id,
+            title = t.title,
+            body = t.body,
+            status = t.state,
+            categoryName = category.name,
+            categoryColor = category.categoryColor
+          )
+        }
       }
     }
     futureSeqViewValueTodo.map { seqViewValueTodo =>
@@ -120,7 +116,7 @@ class TodoController @Inject()(val controllerComponents: ControllerComponents)
         },
         todo => {
           val todoWithNoId: Todo#WithNoId = Todo(
-            categoryId = todo.categoryId,
+            categoryId = Category.Id(todo.categoryId),
             title = todo.title,
             body = todo.body,
             state = Todo.Status.IS_STARTED
@@ -186,7 +182,7 @@ class TodoController @Inject()(val controllerComponents: ControllerComponents)
                   _.copy(
                     title = todo.title,
                     body = todo.body,
-                    categoryId = todo.categoryId,
+                    categoryId = Category.Id(todo.categoryId),
                     state = Todo.Status(code = todo.state)
                   ))
 

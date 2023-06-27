@@ -1,7 +1,7 @@
 package lib.persistence.db
 
 import ixias.persistence.model.Table
-import lib.model.Todo
+import lib.model.{Category, Todo}
 import slick.jdbc.JdbcProfile
 
 import java.time.LocalDateTime
@@ -24,7 +24,7 @@ case class TodoTable[P <: JdbcProfile]()(implicit val driver: P)
 
     // Columns
     /* @1 */ def id = column[Id]("id", O.UInt64, O.PrimaryKey, O.AutoInc)
-    /* @2 */ def categoryId = column[Long]("category_id", O.UInt64)
+    /* @2 */ def categoryId = column[Category.Id]("category_id", O.UInt64)
     /* @3 */ def title = column[String]("title", O.Utf8Char255)
     /* @4 */ def body = column[String]("body", O.Utf8Char255)
     /* @5 */ def state = column[Status]("state", O.UInt8)
@@ -32,7 +32,7 @@ case class TodoTable[P <: JdbcProfile]()(implicit val driver: P)
     /* @7 */ def createdAt = column[LocalDateTime]("created_at", O.Ts)
 
     type TableElementTuple = (
-      Option[Id], Long, String, String, Status, LocalDateTime, LocalDateTime
+      Option[Id], Category.Id, String, String, Status, LocalDateTime, LocalDateTime
     )
 
     def * = (id.?, categoryId, title, body, state, updatedAt, createdAt) <> (
