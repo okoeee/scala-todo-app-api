@@ -32,7 +32,16 @@ class TodoController @Inject()(val controllerComponents: ControllerComponents)
       "categoryId" -> longNumber.verifying(
         "登録されているカテゴリーのみを入力してください",
         categoryId =>
-          selectValues.exists { case (code, _) => code.toLong == categoryId }
+          optionsOfCategoryId.exists {
+            case (code, _) => code.toLong == categoryId
+        }
+      ),
+      "state" -> shortNumber.verifying(
+        "登録されているステータスのみを入力してください",
+        state =>
+          optionsOfTodoStatus.exists {
+            case (strCode, _) => strCode.toShort == state
+        }
       )
     )(TodoForm.apply)(TodoForm.unapply)
   )
@@ -44,14 +53,23 @@ class TodoController @Inject()(val controllerComponents: ControllerComponents)
   )
 
   private val cc = Category.CategoryColor
-  private val selectValues = Seq(
+  private val optionsOfCategoryId = Seq(
     (cc.IS_FRONTEND.code.toString, cc.IS_FRONTEND.name),
     (cc.IS_BACKEND.code.toString, cc.IS_BACKEND.name),
     (cc.IS_INFRA.code.toString, cc.IS_INFRA.name),
   )
 
+  private val ts = Todo.Status
+  private val optionsOfTodoStatus = Seq(
+    (ts.IS_STARTED.code.toString, ts.IS_STARTED.name),
+    (ts.IS_PROGRESSIVE.code.toString, ts.IS_PROGRESSIVE.name),
+    (ts.IS_COMPLETED.code.toString, ts.IS_COMPLETED.name)
+  )
+
   def create: Action[AnyContent] = Action { implicit req =>
-    Ok(views.html.todo.Create(vv, todoForm, selectValues))
+    Ok(
+      views.html.todo
+        .Create(vv, todoForm, optionsOfCategoryId, optionsOfTodoStatus))
   }
 
   def createAction: Action[AnyContent] = Action.async { implicit req =>
@@ -60,7 +78,13 @@ class TodoController @Inject()(val controllerComponents: ControllerComponents)
       .fold(
         formWithErrors => {
           Future.successful(
-            Ok(views.html.todo.Create(vv, formWithErrors, selectValues)))
+            Ok(
+              views.html.todo.Create(
+                vv,
+                formWithErrors,
+                optionsOfCategoryId,
+                optionsOfTodoStatus
+              )))
         },
         todo => {
           val todoWithNoId: Todo#WithNoId = Todo(
@@ -84,10 +108,19 @@ class TodoController @Inject()(val controllerComponents: ControllerComponents)
           val preTodoForm = TodoForm(
             title = todo.v.title,
             body = todo.v.body,
-            categoryId = todo.v.categoryId
+            categoryId = todo.v.categoryId,
+            state = todo.v.state.code
           )
-          Future.successful(Ok(views.html.todo
-            .Update(vv, todoForm.fill(preTodoForm), id, selectValues)))
+          Future.successful(
+            Ok(
+              views.html.todo
+                .Update(
+                  vv,
+                  todoForm.fill(preTodoForm),
+                  id,
+                  optionsOfCategoryId,
+                  optionsOfTodoStatus
+                )))
         }
         .getOrElse {
           Future.successful(Redirect(routes.HomeController.index()))
@@ -102,7 +135,15 @@ class TodoController @Inject()(val controllerComponents: ControllerComponents)
         .fold(
           formWithErrors => {
             Future.successful(
-              Ok(views.html.todo.Update(vv, formWithErrors, id, selectValues)))
+              Ok(
+                views.html.todo
+                  .Update(
+                    vv,
+                    formWithErrors,
+                    id,
+                    optionsOfCategoryId,
+                    optionsOfTodoStatus
+                  )))
           },
           todo => {
             TodoRepository.get(Todo.Id(id)).flatMap {
@@ -114,6 +155,7 @@ class TodoController @Inject()(val controllerComponents: ControllerComponents)
                     title = todo.title,
                     body = todo.body,
                     categoryId = todo.categoryId,
+                    state = Todo.Status(code = todo.state)
                   ))
 
                 TodoRepository.update(updatedTodo).map { _ =>

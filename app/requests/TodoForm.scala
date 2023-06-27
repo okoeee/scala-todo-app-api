@@ -5,5 +5,6 @@ import lib.model.Category.CategoryColor
 case class TodoForm(
   title: String,
   body: String,
-  categoryId: Long
+  categoryId: Long,
+  state: Short
 )
