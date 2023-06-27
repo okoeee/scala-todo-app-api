@@ -22,11 +22,11 @@ class TodoController @Inject()(val controllerComponents: ControllerComponents)
     mapping(
       "title" -> nonEmptyText.verifying(
         "タイトルは英数字・日本語を入力することができ、改行を含むことができません",
-        title => title.matches("([^\\x01-\\x7E]|\\w)+") && !title.contains("\n")
+        title => title.matches("[\\p{IsAlphabetic}\\p{IsDigit}\\p{IsIdeographic}]+") && !title.contains("\n")
       ),
       "body" -> nonEmptyText.verifying(
         "本文は英数字・日本語のみを入力することができます",
-        body => body.matches("([^\\x01-\\x7E]|\\w)+")
+        body => body.matches("[\\p{IsAlphabetic}\\p{IsDigit}\\p{IsIdeographic}\\r\\n]+")
       ),
       "categoryId" -> longNumber.verifying(
         "登録されているカテゴリーのみを入力してください",
