@@ -24,20 +24,19 @@ class HomeController @Inject()(val controllerComponents: ControllerComponents) e
       jsSrc  = Seq("main.js")
     )
 
-    val futureSeqViewValueTodo = for {
-      todos <- TodoRepository.getAll
-      categories <- CategoryRepository.getAll
-    } yield {
-      todos.map { todo =>
+    val futureSeqViewValueTodo = (TodoRepository.getAll zip CategoryRepository.getAll).map { case (todos, categories) =>
+      todos.flatMap { todo =>
         val t = todo.v
-        val c = categories.find(_.id == t.categoryId).getOrElse(throw new NoSuchElementException).v
-        ViewValueTodo(
-          title = t.title,
-          body = t.body,
-          status = t.state,
-          categoryName = c.name,
-          categoryColor = c.categoryColor
-        )
+        val c = categories.find(_.id == t.categoryId).map(_.v)
+        c.map { category =>
+          ViewValueTodo(
+            title = t.title,
+            body = t.body,
+            status = t.state,
+            categoryName = category.name,
+            categoryColor = category.categoryColor
+          )
+        }
       }
     }
 
