@@ -1,4 +1,3 @@
-
 package controllers
 
 import lib.model.{Category, Todo}
@@ -16,7 +15,9 @@ import scala.concurrent.Future
 import scala.concurrent.ExecutionContext.Implicits.global
 
 @Singleton
-class TodoController @Inject()(val controllerComponents: ControllerComponents) extends BaseController with play.api.i18n.I18nSupport {
+class TodoController @Inject()(val controllerComponents: ControllerComponents)
+  extends BaseController
+  with play.api.i18n.I18nSupport {
 
   private val todoForm: Form[TodoForm] = Form(
     mapping(
@@ -30,7 +31,8 @@ class TodoController @Inject()(val controllerComponents: ControllerComponents) e
       ),
       "categoryId" -> longNumber.verifying(
         "登録されているカテゴリーのみを入力してください",
-        categoryId => selectValues.exists{case (code, _) => code.toLong == categoryId}
+        categoryId =>
+          selectValues.exists { case (code, _) => code.toLong == categoryId }
       )
     )(TodoForm.apply)(TodoForm.unapply)
   )
@@ -53,64 +55,73 @@ class TodoController @Inject()(val controllerComponents: ControllerComponents) e
   }
 
   def createAction: Action[AnyContent] = Action.async { implicit req =>
-    todoForm.bindFromRequest().fold(
-      formWithErrors => {
-        Future.successful(Ok(views.html.todo.Create(vv, formWithErrors, selectValues)))
-      },
-      todo => {
-        val todoWithNoId: Todo#WithNoId = Todo(
-          categoryId = todo.categoryId,
-          title = todo.title,
-          body = todo.body,
-          state = Todo.Status.IS_STARTED
-        )
+    todoForm
+      .bindFromRequest()
+      .fold(
+        formWithErrors => {
+          Future.successful(
+            Ok(views.html.todo.Create(vv, formWithErrors, selectValues)))
+        },
+        todo => {
+          val todoWithNoId: Todo#WithNoId = Todo(
+            categoryId = todo.categoryId,
+            title = todo.title,
+            body = todo.body,
+            state = Todo.Status.IS_STARTED
+          )
 
-        TodoRepository.add(todoWithNoId).map { _ =>
-          Redirect(routes.HomeController.index())
+          TodoRepository.add(todoWithNoId).map { _ =>
+            Redirect(routes.HomeController.index())
+          }
         }
-      }
-    )
+      )
   }
 
   def update(id: Long): Action[AnyContent] = Action.async { implicit req =>
     TodoRepository.get(Todo.Id(id)).flatMap { optTodo =>
-      optTodo.map { todo =>
-        val preTodoForm = TodoForm(
-          title = todo.v.title,
-          body = todo.v.body,
-          categoryId = todo.v.categoryId
-        )
-        Future.successful(Ok(views.html.todo.Update(vv, todoForm.fill(preTodoForm), id, selectValues)))
-      }.getOrElse {
-        Future.successful(Redirect(routes.HomeController.index()))
-      }
+      optTodo
+        .map { todo =>
+          val preTodoForm = TodoForm(
+            title = todo.v.title,
+            body = todo.v.body,
+            categoryId = todo.v.categoryId
+          )
+          Future.successful(Ok(views.html.todo
+            .Update(vv, todoForm.fill(preTodoForm), id, selectValues)))
+        }
+        .getOrElse {
+          Future.successful(Redirect(routes.HomeController.index()))
+        }
     }
   }
 
-  def updateAction(id: Long): Action[AnyContent] = Action.async { implicit req =>
-    println("update Action")
-    todoForm.bindFromRequest().fold(
-      formWithErrors => {
-        println("failed")
-        Future.successful(Ok(views.html.todo.Update(vv, formWithErrors, id, selectValues)))
-      },
-      todo => {
-        println("success")
-        TodoRepository.get(Todo.Id(id)).flatMap {
-          case None => Future.successful(Redirect(routes.HomeController.index()))
-          case Some(embeddedTodo) =>
-            val updatedTodo = embeddedTodo.map(_.copy(
-              title = todo.title,
-              body = todo.body,
-              categoryId = todo.categoryId,
-            ))
+  def updateAction(id: Long): Action[AnyContent] = Action.async {
+    implicit req =>
+      todoForm
+        .bindFromRequest()
+        .fold(
+          formWithErrors => {
+            Future.successful(
+              Ok(views.html.todo.Update(vv, formWithErrors, id, selectValues)))
+          },
+          todo => {
+            TodoRepository.get(Todo.Id(id)).flatMap {
+              case None =>
+                Future.successful(Redirect(routes.HomeController.index()))
+              case Some(embeddedTodo) =>
+                val updatedTodo = embeddedTodo.map(
+                  _.copy(
+                    title = todo.title,
+                    body = todo.body,
+                    categoryId = todo.categoryId,
+                  ))
 
-            TodoRepository.update(updatedTodo).map { _ =>
-              Redirect(routes.HomeController.index())
+                TodoRepository.update(updatedTodo).map { _ =>
+                  Redirect(routes.HomeController.index())
+                }
             }
-        }
-      }
-    )
+          }
+        )
   }
 
 }

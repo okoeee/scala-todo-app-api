@@ -1,4 +1,3 @@
-
 package controllers
 
 import javax.inject._
@@ -9,14 +8,14 @@ import lib.persistence.onMySQL.{CategoryRepository, TodoRepository}
 import scala.concurrent.ExecutionContext.Implicits.global
 
 @Singleton
-class HomeController @Inject()(val controllerComponents: ControllerComponents) extends BaseController {
+class HomeController @Inject()(val controllerComponents: ControllerComponents)
+  extends BaseController {
 
   def index(): Action[AnyContent] = Action.async { implicit req =>
-
     val vv = ViewValueHome(
-      title  = "Home",
+      title = "Home",
       cssSrc = Seq("uikit.min.css", "main.css"),
-      jsSrc  = Seq("uikit.min.js", "uikit-icons.min.js", "main.js")
+      jsSrc = Seq("uikit.min.js", "uikit-icons.min.js", "main.js")
     )
 
     val futureSeqViewValueTodo = for {
@@ -25,7 +24,10 @@ class HomeController @Inject()(val controllerComponents: ControllerComponents) e
     } yield {
       todos.map { todo =>
         val t = todo.v
-        val c = categories.find(_.id == t.categoryId).getOrElse(throw new NoSuchElementException).v
+        val c = categories
+          .find(_.id == t.categoryId)
+          .getOrElse(throw new NoSuchElementException)
+          .v
         ViewValueTodo(
           id = todo.id,
           title = t.title,
