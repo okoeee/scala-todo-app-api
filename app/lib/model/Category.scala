@@ -19,10 +19,11 @@ object Category {
   val Id = the[Identity[Id]]
   type Id = Long @@ Category
 
-  sealed abstract class CategoryColor(val code: Short,
-                                      val name: String,
-                                      val color: String)
-    extends EnumStatus
+  sealed abstract class CategoryColor(
+    val code: Short,
+    val name: String,
+    val color: String
+  ) extends EnumStatus
   object CategoryColor extends EnumStatus.Of[CategoryColor] {
     case object IS_FRONTEND
       extends CategoryColor(code = 1, name = "フロントエンド", color = "#FF5722")
@@ -32,9 +33,11 @@ object Category {
       extends CategoryColor(code = 3, name = "インフラ", color = "#03A9F4")
   }
 
-  def apply(name: String,
-            slug: String,
-            categoryColor: CategoryColor): Category#WithNoId =
+  def apply(
+    name: String,
+    slug: String,
+    categoryColor: CategoryColor
+  ): Category#WithNoId =
     new Category(
       id = None,
       name = name,

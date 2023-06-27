@@ -87,3 +87,17 @@ body {
 a.a-hover-none {
   color: currentColor
 }
+
+/* text */
+.success-message {
+  border: 2px solid #1e87f0;
+  color: #1e87f0;
+  font-weight: bold;
+  padding: 6px 12px;
+}
+.error-message {
+  border: 2px solid red;
+  color: red;
+  font-weight: bold;
+  padding: 6px 12px;
+}

@@ -5,7 +5,6 @@ import lib.persistence.onMySQL.{CategoryRepository, TodoRepository}
 
 import javax.inject._
 import play.api.mvc._
-import play.api.data._
 import play.api.data.Forms._
 import model.{ViewValueHome, ViewValueTodo}
 import play.api.data.Form
@@ -53,6 +52,7 @@ class TodoController @Inject()(val controllerComponents: ControllerComponents)
   )
 
   private val cc = Category.CategoryColor
+  // selectボックスのOptionの値
   private val optionsOfCategoryId = Seq(
     (cc.IS_FRONTEND.code.toString, cc.IS_FRONTEND.name),
     (cc.IS_BACKEND.code.toString, cc.IS_BACKEND.name),
@@ -60,6 +60,7 @@ class TodoController @Inject()(val controllerComponents: ControllerComponents)
   )
 
   private val ts = Todo.Status
+  // selectボックスのOptionの値
   private val optionsOfTodoStatus = Seq(
     (ts.IS_STARTED.code.toString, ts.IS_STARTED.name),
     (ts.IS_PROGRESSIVE.code.toString, ts.IS_PROGRESSIVE.name),
@@ -73,22 +74,25 @@ class TodoController @Inject()(val controllerComponents: ControllerComponents)
       jsSrc = Seq("uikit.min.js", "uikit-icons.min.js", "main.js")
     )
 
-    val futureSeqViewValueTodo = (TodoRepository.getAll zip CategoryRepository.getAll).map { case (todos, categories) =>
-      todos.flatMap { todo =>
-        val t = todo.v
-        val c = categories.find(_.id == t.categoryId).map(_.v)
-        c.map { category =>
-          ViewValueTodo(
-            id = todo.id,
-            title = t.title,
-            body = t.body,
-            status = t.state,
-            categoryName = category.name,
-            categoryColor = category.categoryColor
-          )
-        }
+    val futureSeqViewValueTodo =
+      (TodoRepository.getAll zip CategoryRepository.getAll).map {
+        case (todos, categories) =>
+          todos.flatMap { todo =>
+            val t = todo.v
+            val c = categories.find(_.id == t.categoryId).map(_.v)
+            c.map { category =>
+              ViewValueTodo(
+                id = todo.id,
+                title = t.title,
+                body = t.body,
+                status = t.state,
+                categoryName = category.name,
+                categoryColor = category.categoryColor
+              )
+            }
+          }
       }
-    }
+
     futureSeqViewValueTodo.map { seqViewValueTodo =>
       Ok(views.html.todo.Index(vv, seqViewValueTodo, todoForm))
     }
@@ -103,7 +107,12 @@ class TodoController @Inject()(val controllerComponents: ControllerComponents)
     )
     Ok(
       views.html.todo
-        .Create(vv, todoForm.fill(defaultTodoForm), optionsOfCategoryId, optionsOfTodoStatus))
+        .Create(
+          vv,
+          todoForm.fill(defaultTodoForm),
+          optionsOfCategoryId,
+          optionsOfTodoStatus
+        ))
   }
 
   def createAction: Action[AnyContent] = Action.async { implicit req =>
@@ -130,35 +139,35 @@ class TodoController @Inject()(val controllerComponents: ControllerComponents)
 
           TodoRepository.add(todoWithNoId).map { _ =>
             Redirect(routes.TodoController.index())
+              .flashing("success" -> "Todoを作成しました")
           }
         }
       )
   }
 
   def update(id: Long): Action[AnyContent] = Action.async { implicit req =>
-    TodoRepository.get(Todo.Id(id)).flatMap { optTodo =>
-      optTodo
-        .map { todo =>
-          val preTodoForm = TodoForm(
-            title = todo.v.title,
-            body = todo.v.body,
-            categoryId = todo.v.categoryId,
-            state = todo.v.state.code
-          )
-          Future.successful(
-            Ok(
-              views.html.todo
-                .Update(
-                  vv,
-                  todoForm.fill(preTodoForm),
-                  id,
-                  optionsOfCategoryId,
-                  optionsOfTodoStatus
-                )))
-        }
-        .getOrElse {
-          Future.successful(Redirect(routes.TodoController.index()))
-        }
+    TodoRepository.get(Todo.Id(id)).flatMap {
+      case None =>
+        Future.successful(
+          Redirect(routes.TodoController.index())
+            .flashing("error" -> "更新対象のTodoが見つかりませんでした"))
+      case Some(embeddedTodo) =>
+        val preTodoForm = TodoForm(
+          title = embeddedTodo.v.title,
+          body = embeddedTodo.v.body,
+          categoryId = embeddedTodo.v.categoryId,
+          state = embeddedTodo.v.state.code
+        )
+        Future.successful(
+          Ok(
+            views.html.todo
+              .Update(
+                vv,
+                todoForm.fill(preTodoForm),
+                id,
+                optionsOfCategoryId,
+                optionsOfTodoStatus
+              )))
     }
   }
 
@@ -182,7 +191,8 @@ class TodoController @Inject()(val controllerComponents: ControllerComponents)
           todo => {
             TodoRepository.get(Todo.Id(id)).flatMap {
               case None =>
-                Future.successful(Redirect(routes.TodoController.index()))
+                Future.successful(Redirect(routes.TodoController.index())
+                  .flashing("error" -> "更新対象のTodoが見つかりませんでした"))
               case Some(embeddedTodo) =>
                 val updatedTodo = embeddedTodo.map(
                   _.copy(
@@ -194,6 +204,7 @@ class TodoController @Inject()(val controllerComponents: ControllerComponents)
 
                 TodoRepository.update(updatedTodo).map { _ =>
                   Redirect(routes.TodoController.index())
+                    .flashing("success" -> "Todoを更新しました")
                 }
             }
           }
@@ -204,10 +215,13 @@ class TodoController @Inject()(val controllerComponents: ControllerComponents)
     implicit req =>
       TodoRepository.get(Todo.Id(id)).flatMap {
         case None =>
-          Future.successful(Redirect(routes.TodoController.index()))
+          Future.successful(
+            Redirect(routes.TodoController.index())
+              .flashing("error" -> "削除対象のTodoが見つかりませんでした"))
         case Some(embeddedTodo) =>
           TodoRepository.remove(embeddedTodo.id).map { _ =>
             Redirect(routes.TodoController.index())
+              .flashing("success" -> "Todoを削除しました")
           }
       }
   }

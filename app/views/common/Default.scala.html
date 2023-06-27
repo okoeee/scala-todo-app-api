@@ -4,7 +4,7 @@
 * two arguments, a `String` for the title of the page and an `Html`
 * object to insert into the body of the page.
 *@
-@(vv: model.ViewValueCommon)(content: Html)
+@(vv: model.ViewValueCommon)(content: Html)(implicit flash: Flash)
 
 <!DOCTYPE html>
 <html lang="ja">
@@ -22,6 +22,12 @@
       <div class="header__content"><span class="header__logo">To-do Sample</span></div>
     </header>
     <main class="h-100vh bg-gray container">
+      @flash.get("success").map { message =>
+        <span class="success-message">@message</span>
+      }
+      @flash.get("error").map { message =>
+        <span class="error-message">@message</span>
+      }
       @content
     </main>
     @for(js <- vv.jsSrc) {

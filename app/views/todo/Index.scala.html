@@ -1,7 +1,7 @@
 @import helper._
 @import requests.TodoForm
 
-@(vv: model.ViewValueCommon, todos: Seq[model.ViewValueTodo], todoForm: Form[TodoForm])(implicit req: RequestHeader, message: Messages)
+@(vv: model.ViewValueCommon, todos: Seq[model.ViewValueTodo], todoForm: Form[TodoForm])(implicit req: RequestHeader, message: Messages, flash: Flash)
 
 @common.Default(vv){
  <div class="uk-text-right uk-margin-bottom">
@@ -20,10 +20,10 @@
    </div>
    <div class="card-right uk-flex uk-flex-middle uk-flex-between" style="min-width: 68px">
     <a href="@routes.TodoController.update(todo.id)" uk-icon="icon: file-edit; ratio: 1.2" class="a-hover-none uk-padding-small"></a>
-    @form(routes.TodoController.removeAction(todo.id)) {
+    @form(routes.TodoController.removeAction(todo.id), 'onSubmit -> s"return confirmFormSubmit(event, '${todo.title}')") {
      @CSRF.formField
      <input type="hidden" name="_method" value="DELETE">
-     <button type="submit" onclick="confirmFromSubmit(event, '@todo.title')" uk-icon="icon: trash; ratio: 1.2" class="uk-padding-small"></button>
+     <button id="btn-@todo.id" type="submit" uk-icon="icon: trash; ratio: 1.2" class="uk-padding-small"></button>
     }
    </div>
   </div>
@@ -31,11 +31,11 @@
 }
 
 <script>
-    function confirmFormSubmit(event, title) {
-      event.preventDefault();
-
-      if (confirm(`${title}を削除しますか`)) {
-        document.getElementById("myForm").submit();
-      }
-    }
+function confirmFormSubmit(event, title) {
+  if (confirm(`${title}を削除しますか`)) {
+    return true;
+  } else {
+    return false;
+  }
+}
 </script>
