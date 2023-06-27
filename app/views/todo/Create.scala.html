@@ -9,7 +9,7 @@
         @inputText(todoForm("title"), 'class -> "uk-input form-width")
         @inputText(todoForm("body"), 'class -> "uk-input form-width")
         @select(field = todoForm("categoryId"), options = optionsOfCategoryId, 'class -> "uk-select form-width")
-        @select(field = todoForm("state"), options = optionsOfTodoStatus, 'class -> "uk-select form-width", 'disabled -> "disabled")
+        @select(field = todoForm("state"), options = optionsOfTodoStatus, 'class -> "uk-select form-width", 'readonly -> "readonly", 'style -> "pointer-events: none; background-color: gray", 'tabindex -> "-1")
 
         <input type="submit" class="uk-button uk-button-default bg-white">
     }

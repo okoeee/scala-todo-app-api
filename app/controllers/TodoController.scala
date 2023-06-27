@@ -95,9 +95,15 @@ class TodoController @Inject()(val controllerComponents: ControllerComponents)
   }
 
   def create: Action[AnyContent] = Action { implicit req =>
+    val defaultTodoForm = TodoForm(
+      title = "",
+      body = "",
+      categoryId = 1,
+      state = 0
+    )
     Ok(
       views.html.todo
-        .Create(vv, todoForm, optionsOfCategoryId, optionsOfTodoStatus))
+        .Create(vv, todoForm.fill(defaultTodoForm), optionsOfCategoryId, optionsOfTodoStatus))
   }
 
   def createAction: Action[AnyContent] = Action.async { implicit req =>
