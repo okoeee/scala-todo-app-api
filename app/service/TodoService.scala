@@ -8,7 +8,7 @@ import scala.concurrent.ExecutionContext.Implicits.global
 
 object TodoService {
 
-  def getFutureSeqViewValueTodo: Future[Seq[ViewValueTodo]] = {
+  def getSeqViewValueTodo: Future[Seq[ViewValueTodo]] = {
     (TodoRepository.getAll zip CategoryRepository.getAll).map {
       case (todos, categories) =>
         todos.flatMap { embeddedTodo =>

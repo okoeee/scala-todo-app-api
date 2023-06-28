@@ -1,0 +1,22 @@
+@import helper._
+
+@(vv: model.ViewValueCommon, categories: Seq[model.ViewValueCategory])(implicit req: RequestHeader, message: Messages, flash: Flash)
+
+@common.Default(vv){
+    <div class="uk-text-right uk-margin-bottom">
+        <a href="/category/create" >+新規作成</a>
+    </div>
+    @for(category <- categories) {
+        <p>@category.name</p>
+    }
+}
+
+<script>
+function confirmFormSubmit(event, title) {
+  if (confirm(`${title}を削除しますか`)) {
+    return true;
+  } else {
+    return false;
+  }
+}
+</script>
