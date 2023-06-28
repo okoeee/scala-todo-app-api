@@ -19,18 +19,14 @@ class TodoController @Inject()(val controllerComponents: ControllerComponents)
   with play.api.i18n.I18nSupport {
 
   private val vv = ViewValueHome(
-    title = "Todo Create",
+    title = "Todo",
     cssSrc = Seq("uikit.min.css", "main.css"),
     jsSrc = Seq("main.js")
   )
 
-  private val ts = Todo.Status
-  // selectボックスのOptionの値
-  private val optionsOfTodoStatus = Seq(
-    (ts.IS_STARTED.code.toString, ts.IS_STARTED.name),
-    (ts.IS_PROGRESSIVE.code.toString, ts.IS_PROGRESSIVE.name),
-    (ts.IS_COMPLETED.code.toString, ts.IS_COMPLETED.name)
-  )
+  private val optionsOfTodoStatus = Todo.Status.values.map { todoStatus =>
+    (todoStatus.code.toString, todoStatus.name)
+  }
 
   def index(): Action[AnyContent] = Action.async { implicit req =>
     val vv = ViewValueHome(
@@ -45,13 +41,13 @@ class TodoController @Inject()(val controllerComponents: ControllerComponents)
   }
 
   def create: Action[AnyContent] = Action.async { implicit req =>
-    val defaultTodoForm = TodoForm(
-      title = "",
-      body = "",
-      categoryId = Category.Id(1),
-      state = Todo.Status.IS_STARTED
-    )
     CategoryService.getOptionsOfCategory.map { optionsOfCategory =>
+      val defaultTodoForm = TodoForm(
+        title = "",
+        body = "",
+        categoryId = Category.Id(optionsOfCategory.headOption.map(_._1.toLong).getOrElse(0L)),
+        state = Todo.Status.IS_STARTED
+      )
       Ok(
         views.html.todo
           .Create(
