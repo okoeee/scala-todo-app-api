@@ -131,6 +131,23 @@ class CategoryController @Inject()(
         )
   }
 
-  def removeAction(id: Long): Action[AnyContent] = ???
+  def removeAction(id: Long): Action[AnyContent] = Action.async {
+    implicit req =>
+      CategoryRepository.get(Category.Id(id)).flatMap {
+        case None =>
+          Future.successful(
+            Redirect(routes.CategoryController.index())
+              .flashing("error" -> "削除対象のカテゴリーが見つかりませんでした"))
+        case Some(embeddedCategory) =>
+          CategoryRepository.remove(embeddedCategory.id).map { _ =>
+            Redirect(routes.CategoryController.index())
+              .flashing("success" -> "Categoryを削除しました")
+          } recover {
+            case _: Exception =>
+              Redirect(routes.CategoryController.index())
+                .flashing("error" -> "Categoryの削除に失敗しました")
+          }
+      }
+  }
 
 }

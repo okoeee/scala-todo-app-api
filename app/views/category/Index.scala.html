@@ -21,8 +21,13 @@
                         <td>@category.name</td>
                         <td>@category.slug</td>
                         <td style="background-color: @category.colorCategory.color; color: #fff;">@category.colorCategory.name</td>
-                        <td>
+                        <td class="uk-flex" style="justify-content: end;">
                             <a href="@routes.CategoryController.update(category.id)" uk-icon="icon: file-edit; ratio: 1.2" class="a-hover-none uk-padding-small"></a>
+                            @form(routes.CategoryController.removeAction(category.id), 'onSubmit -> s"return confirmFormSubmit(event, '${category.name}')") {
+                                @CSRF.formField
+                                <input type="hidden" name="_method" value="DELETE">
+                                <button id="btn-@category.id" type="submit" uk-icon="icon: trash; ratio: 1.2" class="uk-padding-small"></button>
+                            }
                         </td>
                     </tr>
                 }

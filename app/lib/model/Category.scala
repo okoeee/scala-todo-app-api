@@ -26,7 +26,7 @@ object Category {
   ) extends EnumStatus
   object CategoryColor extends EnumStatus.Of[CategoryColor] {
     case object COLOR_OPTION_NONE
-      extends CategoryColor(code = 0, name = "白", color = "#FFF")
+      extends CategoryColor(code = 0, name = "灰", color = "#808080")
     case object COLOR_OPTION1
       extends CategoryColor(code = 1, name = "赤", color = "#FF4500")
     case object COLOR_OPTION2
