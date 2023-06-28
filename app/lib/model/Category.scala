@@ -25,12 +25,12 @@ object Category {
     val color: String
   ) extends EnumStatus
   object CategoryColor extends EnumStatus.Of[CategoryColor] {
-    case object IS_FRONTEND
-      extends CategoryColor(code = 1, name = "フロントエンド", color = "#FF5722")
-    case object IS_BACKEND
-      extends CategoryColor(code = 2, name = "バックエンド", color = "#4CAF50")
-    case object IS_INFRA
-      extends CategoryColor(code = 3, name = "インフラ", color = "#03A9F4")
+    case object COLOR_OPTION1 extends CategoryColor(code = 1, name = "赤", color = "#FF0000")
+    case object COLOR_OPTION2 extends CategoryColor(code = 2, name = "緑", color = "#00FF00")
+    case object COLOR_OPTION3 extends CategoryColor(code = 3, name = "青", color = "#0000FF")
+    case object COLOR_OPTION4 extends CategoryColor(code = 4, name = "黄色", color = "#FFFF00")
+    case object COLOR_OPTION5 extends CategoryColor(code = 5, name = "マゼンタ", color = "#FF00FF")
+    case object COLOR_OPTION6 extends CategoryColor(code = 6, name = "シアン", color = "#00FFFF")
   }
 
   def apply(

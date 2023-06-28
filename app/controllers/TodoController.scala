@@ -22,11 +22,16 @@ class TodoController @Inject()(val controllerComponents: ControllerComponents)
     mapping(
       "title" -> nonEmptyText.verifying(
         "タイトルは英数字・日本語を入力することができ、改行を含むことができません",
-        title => title.matches("[\\p{IsAlphabetic}\\p{IsDigit}\\p{IsIdeographic}]+") && !title.contains("\n")
+        title =>
+          title
+            .matches("[\\p{IsAlphabetic}\\p{IsDigit}\\p{IsIdeographic}]+") && !title
+            .contains("\n")
       ),
       "body" -> nonEmptyText.verifying(
         "本文は英数字・日本語のみを入力することができます",
-        body => body.matches("[\\p{IsAlphabetic}\\p{IsDigit}\\p{IsIdeographic}\\r\\n]+")
+        body =>
+          body.matches(
+            "[\\p{IsAlphabetic}\\p{IsDigit}\\p{IsIdeographic}\\r\\n]+")
       ),
       "categoryId" -> longNumber.verifying(
         "登録されているカテゴリーのみを入力してください",
@@ -51,13 +56,11 @@ class TodoController @Inject()(val controllerComponents: ControllerComponents)
     jsSrc = Seq("main.js")
   )
 
-  private val cc = Category.CategoryColor
   // selectボックスのOptionの値
-  private val optionsOfCategoryId = Seq(
-    (cc.IS_FRONTEND.code.toString, cc.IS_FRONTEND.name),
-    (cc.IS_BACKEND.code.toString, cc.IS_BACKEND.name),
-    (cc.IS_INFRA.code.toString, cc.IS_INFRA.name),
-  )
+  private val optionsOfCategoryId = Category.CategoryColor.values.map {
+    categoryColor =>
+      (categoryColor.code.toString, categoryColor.name)
+  }
 
   private val ts = Todo.Status
   // selectボックスのOptionの値
@@ -77,15 +80,15 @@ class TodoController @Inject()(val controllerComponents: ControllerComponents)
     val futureSeqViewValueTodo =
       (TodoRepository.getAll zip CategoryRepository.getAll).map {
         case (todos, categories) =>
-          todos.flatMap { todo =>
-            val t = todo.v
-            val c = categories.find(_.id == t.categoryId).map(_.v)
-            c.map { category =>
+          todos.flatMap { embeddedTodo =>
+            val todo = embeddedTodo.v
+            val optCategory = categories.find(_.id == todo.categoryId).map(_.v)
+            optCategory.map { category =>
               ViewValueTodo(
-                id = todo.id,
-                title = t.title,
-                body = t.body,
-                status = t.state,
+                id = embeddedTodo.id,
+                title = todo.title,
+                body = todo.body,
+                status = todo.state,
                 categoryName = category.name,
                 categoryColor = category.categoryColor
               )
