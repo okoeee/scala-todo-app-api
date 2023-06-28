@@ -1,17 +1,14 @@
 package controllers
 
-import ixias.model.{@@, tag}
 import lib.model.{Category, Todo}
-import lib.persistence.onMySQL.{CategoryRepository, TodoRepository}
+import lib.persistence.onMySQL.TodoRepository
 
 import javax.inject._
 import play.api.mvc._
-import play.api.data.Forms._
-import model.{ViewValueHome, ViewValueTodo}
-import play.api.data.{Form, FormError}
-import play.api.data.format.{Formats, Formatter}
-import requests.TodoForm
-import service.CategoryService
+import model.ViewValueHome
+import forms.TodoForm
+import forms.TodoForm.todoForm
+import service.{CategoryService, TodoService}
 
 import scala.concurrent.Future
 import scala.concurrent.ExecutionContext.Implicits.global
@@ -20,70 +17,6 @@ import scala.concurrent.ExecutionContext.Implicits.global
 class TodoController @Inject()(val controllerComponents: ControllerComponents)
   extends BaseController
   with play.api.i18n.I18nSupport {
-
-  implicit val categoryIdFormat: Formatter[Category.Id] =
-    new Formatter[Category.Id] {
-      override def bind(
-        key: String,
-        data: Map[String, String]): Either[Seq[FormError], Category.Id] = {
-        data.get(key) match {
-          case Some(s) =>
-            try {
-              Right(tag[Category.Id](s.toLong).asInstanceOf[Category.Id])
-            } catch {
-              case _: NumberFormatException =>
-                Left(Seq(FormError(key, "error.number", Nil)))
-            }
-          case None => Left(Seq(FormError(key, "error.required", Nil)))
-        }
-      }
-
-      override def unbind(key: String,
-                          value: Category.Id): Map[String, String] =
-        Map(key -> value.toString)
-    }
-
-  implicit val todoStatusFormat = new Formatter[Todo.Status] {
-    override def bind(
-      key: String,
-      data: Map[String, String]): Either[Seq[FormError], Todo.Status] = {
-      data.get(key) match {
-        case Some(str) =>
-          try {
-            Right(
-              Todo.Status
-                .find(_.code == str.toShort)
-                .getOrElse(Todo.Status.IS_STARTED))
-          } catch {
-            case _: NumberFormatException =>
-              Left(Seq(FormError(key, "error.required", Nil)))
-          }
-        case None => Left(Seq(FormError(key, "error.required", Nil)))
-      }
-    }
-    override def unbind(key: String, value: Todo.Status): Map[String, String] =
-      Map(key -> value.toString)
-  }
-
-  private val todoForm: Form[TodoForm] = Form(
-    mapping(
-      "title" -> nonEmptyText.verifying(
-        "タイトルは英数字・日本語を入力することができ、改行を含むことができません",
-        title =>
-          title
-            .matches("[\\p{IsAlphabetic}\\p{IsDigit}\\p{IsIdeographic}]+") && !title
-            .contains("\n")
-      ),
-      "body" -> nonEmptyText.verifying(
-        "本文は英数字・日本語のみを入力することができます",
-        body =>
-          body.matches(
-            "[\\p{IsAlphabetic}\\p{IsDigit}\\p{IsIdeographic}\\r\\n]+")
-      ),
-      "categoryId" -> of[Category.Id],
-      "state" -> of[Todo.Status]
-    )(TodoForm.apply)(TodoForm.unapply)
-  )
 
   private val vv = ViewValueHome(
     title = "Todo Create",
@@ -106,26 +39,7 @@ class TodoController @Inject()(val controllerComponents: ControllerComponents)
       jsSrc = Seq("uikit.min.js", "uikit-icons.min.js", "main.js")
     )
 
-    val futureSeqViewValueTodo =
-      (TodoRepository.getAll zip CategoryRepository.getAll).map {
-        case (todos, categories) =>
-          todos.flatMap { embeddedTodo =>
-            val todo = embeddedTodo.v
-            val optCategory = categories.find(_.id == todo.categoryId).map(_.v)
-            optCategory.map { category =>
-              ViewValueTodo(
-                id = embeddedTodo.id,
-                title = todo.title,
-                body = todo.body,
-                status = todo.state,
-                categoryName = category.name,
-                categoryColor = category.categoryColor
-              )
-            }
-          }
-      }
-
-    futureSeqViewValueTodo.map { seqViewValueTodo =>
+    TodoService.getFutureSeqViewValueTodo.map { seqViewValueTodo =>
       Ok(views.html.todo.Index(vv, seqViewValueTodo, todoForm))
     }
   }
