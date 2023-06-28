@@ -1,7 +1,6 @@
 package controllers
 
 import ixias.model.{@@, tag}
-
 import lib.model.{Category, Todo}
 import lib.persistence.onMySQL.{CategoryRepository, TodoRepository}
 
@@ -12,6 +11,7 @@ import model.{ViewValueHome, ViewValueTodo}
 import play.api.data.{Form, FormError}
 import play.api.data.format.{Formats, Formatter}
 import requests.TodoForm
+import service.CategoryService
 
 import scala.concurrent.Future
 import scala.concurrent.ExecutionContext.Implicits.global
@@ -24,7 +24,7 @@ class TodoController @Inject()(val controllerComponents: ControllerComponents)
   implicit val categoryIdFormat: Formatter[Category.Id] =
     new Formatter[Category.Id] {
       override def bind(
-        key:  String,
+        key: String,
         data: Map[String, String]): Either[Seq[FormError], Category.Id] = {
         data.get(key) match {
           case Some(s) =>
@@ -38,22 +38,31 @@ class TodoController @Inject()(val controllerComponents: ControllerComponents)
         }
       }
 
-      override def unbind(key: String, value: Category.Id): Map[String, String] = Map(key -> value.toString)
+      override def unbind(key: String,
+                          value: Category.Id): Map[String, String] =
+        Map(key -> value.toString)
     }
 
   implicit val todoStatusFormat = new Formatter[Todo.Status] {
-    override def bind(key: String, data: Map[String, String]): Either[Seq[FormError], Todo.Status] = {
+    override def bind(
+      key: String,
+      data: Map[String, String]): Either[Seq[FormError], Todo.Status] = {
       data.get(key) match {
         case Some(str) =>
           try {
-            Right(Todo.Status.find(_.code == str.toShort).getOrElse(Todo.Status.IS_STARTED))
+            Right(
+              Todo.Status
+                .find(_.code == str.toShort)
+                .getOrElse(Todo.Status.IS_STARTED))
           } catch {
-            case _: NumberFormatException => Left(Seq(FormError(key, "error.required", Nil)))
+            case _: NumberFormatException =>
+              Left(Seq(FormError(key, "error.required", Nil)))
           }
         case None => Left(Seq(FormError(key, "error.required", Nil)))
       }
     }
-    override def unbind(key: String, value: Todo.Status): Map[String, String] = Map(key -> value.toString)
+    override def unbind(key: String, value: Todo.Status): Map[String, String] =
+      Map(key -> value.toString)
   }
 
   private val todoForm: Form[TodoForm] = Form(
@@ -81,12 +90,6 @@ class TodoController @Inject()(val controllerComponents: ControllerComponents)
     cssSrc = Seq("uikit.min.css", "main.css"),
     jsSrc = Seq("main.js")
   )
-
-  // selectボックスのOptionの値
-  private val optionsOfCategoryId = Category.CategoryColor.values.map {
-    categoryColor =>
-      (categoryColor.code.toString, categoryColor.name)
-  }
 
   private val ts = Todo.Status
   // selectボックスのOptionの値
@@ -127,21 +130,23 @@ class TodoController @Inject()(val controllerComponents: ControllerComponents)
     }
   }
 
-  def create: Action[AnyContent] = Action { implicit req =>
+  def create: Action[AnyContent] = Action.async { implicit req =>
     val defaultTodoForm = TodoForm(
       title = "",
       body = "",
       categoryId = Category.Id(1),
       state = Todo.Status.IS_STARTED
     )
-    Ok(
-      views.html.todo
-        .Create(
-          vv,
-          todoForm.fill(defaultTodoForm),
-          optionsOfCategoryId,
-          optionsOfTodoStatus
-        ))
+    CategoryService.getOptionsOfCategory.map { optionsOfCategory =>
+      Ok(
+        views.html.todo
+          .Create(
+            vv,
+            todoForm.fill(defaultTodoForm),
+            optionsOfCategory,
+            optionsOfTodoStatus
+          ))
+    }
   }
 
   def createAction: Action[AnyContent] = Action.async { implicit req =>
@@ -149,14 +154,15 @@ class TodoController @Inject()(val controllerComponents: ControllerComponents)
       .bindFromRequest()
       .fold(
         formWithErrors => {
-          Future.successful(
+          CategoryService.getOptionsOfCategory.map { optionsOfCategory =>
             Ok(
               views.html.todo.Create(
                 vv,
                 formWithErrors,
-                optionsOfCategoryId,
+                optionsOfCategory,
                 optionsOfTodoStatus
-              )))
+              ))
+          }
         },
         todo => {
           val todoWithNoId: Todo#WithNoId = Todo(
@@ -169,6 +175,10 @@ class TodoController @Inject()(val controllerComponents: ControllerComponents)
           TodoRepository.add(todoWithNoId).map { _ =>
             Redirect(routes.TodoController.index())
               .flashing("success" -> "Todoを作成しました")
+          } recover {
+            case _: Exception =>
+              Redirect(routes.TodoController.index())
+                .flashing("error" -> "Todoの作成に失敗しました")
           }
         }
       )
@@ -187,16 +197,17 @@ class TodoController @Inject()(val controllerComponents: ControllerComponents)
           categoryId = embeddedTodo.v.categoryId,
           state = embeddedTodo.v.state
         )
-        Future.successful(
+        CategoryService.getOptionsOfCategory.map { optionsOfCategory =>
           Ok(
             views.html.todo
               .Update(
                 vv,
                 todoForm.fill(preTodoForm),
                 id,
-                optionsOfCategoryId,
+                optionsOfCategory,
                 optionsOfTodoStatus
-              )))
+              ))
+        }
     }
   }
 
@@ -206,16 +217,17 @@ class TodoController @Inject()(val controllerComponents: ControllerComponents)
         .bindFromRequest()
         .fold(
           formWithErrors => {
-            Future.successful(
+            CategoryService.getOptionsOfCategory.map { optionsOfCategory =>
               Ok(
                 views.html.todo
                   .Update(
                     vv,
                     formWithErrors,
                     id,
-                    optionsOfCategoryId,
+                    optionsOfCategory,
                     optionsOfTodoStatus
-                  )))
+                  ))
+            }
           },
           todo => {
             TodoRepository.get(Todo.Id(id)).flatMap {
@@ -234,6 +246,10 @@ class TodoController @Inject()(val controllerComponents: ControllerComponents)
                 TodoRepository.update(updatedTodo).map { _ =>
                   Redirect(routes.TodoController.index())
                     .flashing("success" -> "Todoを更新しました")
+                } recover {
+                  case _: Exception =>
+                    Redirect(routes.TodoController.index())
+                      .flashing("error" -> "Todoの更新に失敗しました")
                 }
             }
           }
@@ -251,6 +267,10 @@ class TodoController @Inject()(val controllerComponents: ControllerComponents)
           TodoRepository.remove(embeddedTodo.id).map { _ =>
             Redirect(routes.TodoController.index())
               .flashing("success" -> "Todoを削除しました")
+          } recover {
+            case _: Exception =>
+              Redirect(routes.TodoController.index())
+                .flashing("error" -> "Todoの削除に失敗しました")
           }
       }
   }
