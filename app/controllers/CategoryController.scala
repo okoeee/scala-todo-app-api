@@ -1,5 +1,6 @@
 package controllers
 
+import forms.CategoryForm
 import forms.CategoryForm.categoryForm
 import lib.model.Category
 import lib.model.Category.CategoryColor
@@ -31,8 +32,11 @@ class CategoryController @Inject()(
   }
 
   def index(): Action[AnyContent] = Action.async { implicit req =>
+    val indexVv =
+      vv.copy(jsSrc = Seq("uikit.min.js", "uikit-icons.min.js", "main.js"))
+
     CategoryService.getViewValueCategory.map { categories =>
-      Ok(views.html.category.Index(vv, categories))
+      Ok(views.html.category.Index(indexVv, categories))
     }
   }
 
@@ -64,9 +68,68 @@ class CategoryController @Inject()(
       )
   }
 
-  def update(id: Long): Action[AnyContent] = ???
+  def update(id: Long): Action[AnyContent] = Action.async { implicit req =>
+    CategoryRepository.get(Category.Id(id)).map {
+      case None =>
+        Redirect(routes.CategoryController.index())
+          .flashing("error" -> "更新対象のカテゴリーが見つかりませんでした")
+      case Some(embeddedCategory) =>
+        val preCategoryForm = CategoryForm(
+          name = embeddedCategory.v.name,
+          slug = embeddedCategory.v.slug,
+          categoryColor = embeddedCategory.v.categoryColor
+        )
+        Ok(
+          views.html.category.Update(
+            vv,
+            id,
+            categoryForm.fill(preCategoryForm),
+            optionsOfCategoryColor
+          ))
+    }
+  }
 
-  def updateAction(id: Long): Action[AnyContent] = ???
+  def updateAction(id: Long): Action[AnyContent] = Action.async {
+    implicit req =>
+      categoryForm
+        .bindFromRequest()
+        .fold(
+          formWithErrors => {
+            Future.successful(
+              Ok(
+                views.html.category
+                  .Update(
+                    vv,
+                    id,
+                    formWithErrors,
+                    optionsOfCategoryColor,
+                  )))
+          },
+          category => {
+            CategoryRepository.get(Category.Id(id)).flatMap {
+              case None =>
+                Future.successful(Redirect(routes.CategoryController.index())
+                  .flashing("error" -> "更新対象のCategoryが見つかりませんでした"))
+              case Some(embeddedCategory) =>
+                val updatedCategory = embeddedCategory.map(
+                  _.copy(
+                    name = category.name,
+                    slug = category.slug,
+                    categoryColor = category.categoryColor
+                  ))
+
+                CategoryRepository.update(updatedCategory).map { _ =>
+                  Redirect(routes.CategoryController.index())
+                    .flashing("success" -> "Categoryを更新しました")
+                } recover {
+                  case _: Exception =>
+                    Redirect(routes.CategoryController.index())
+                      .flashing("error" -> "Categoryの更新に失敗しました")
+                }
+            }
+          }
+        )
+  }
 
   def removeAction(id: Long): Action[AnyContent] = ???
 

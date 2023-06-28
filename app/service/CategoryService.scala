@@ -23,6 +23,7 @@ object CategoryService {
     CategoryRepository.getAll.map { seqCategory =>
       seqCategory.map { category =>
         ViewValueCategory(
+          id = category.id,
           name = category.v.name,
           slug = category.v.slug,
           colorCategory = category.v.categoryColor

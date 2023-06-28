@@ -12,6 +12,7 @@
                     <th>name</th>
                     <th>slug</th>
                     <th>color</th>
+                    <th></th>
                 </tr>
             </thead>
             <tbody>
@@ -20,6 +21,9 @@
                         <td>@category.name</td>
                         <td>@category.slug</td>
                         <td style="background-color: @category.colorCategory.color; color: #fff;">@category.colorCategory.name</td>
+                        <td>
+                            <a href="@routes.CategoryController.update(category.id)" uk-icon="icon: file-edit; ratio: 1.2" class="a-hover-none uk-padding-small"></a>
+                        </td>
                     </tr>
                 }
             </tbody>
