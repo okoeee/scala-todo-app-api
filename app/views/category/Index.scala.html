@@ -6,9 +6,24 @@
     <div class="uk-text-right uk-margin-bottom">
         <a href="/category/create" >+新規作成</a>
     </div>
-    @for(category <- categories) {
-        <p>@category.name</p>
-    }
+        <table class="uk-table uk-table-divider" style="background-color: #fff;">
+            <thead>
+                <tr>
+                    <th>name</th>
+                    <th>slug</th>
+                    <th>color</th>
+                </tr>
+            </thead>
+            <tbody>
+                @for(category <- categories) {
+                    <tr>
+                        <td>@category.name</td>
+                        <td>@category.slug</td>
+                        <td style="background-color: @category.colorCategory.color; color: #fff;">@category.colorCategory.name</td>
+                    </tr>
+                }
+            </tbody>
+        </table>
 }
 
 <script>
