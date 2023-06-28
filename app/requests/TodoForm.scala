@@ -1,8 +1,10 @@
 package requests
 
+import lib.model.{Category, Todo}
+
 case class TodoForm(
   title: String,
   body: String,
-  categoryId: Long,
-  state: Short
+  categoryId: Category.Id,
+  state: Todo.Status
 )

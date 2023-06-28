@@ -1,5 +1,7 @@
 package controllers
 
+import ixias.model.{@@, tag}
+
 import lib.model.{Category, Todo}
 import lib.persistence.onMySQL.{CategoryRepository, TodoRepository}
 
@@ -7,7 +9,8 @@ import javax.inject._
 import play.api.mvc._
 import play.api.data.Forms._
 import model.{ViewValueHome, ViewValueTodo}
-import play.api.data.Form
+import play.api.data.{Form, FormError}
+import play.api.data.format.{Formats, Formatter}
 import requests.TodoForm
 
 import scala.concurrent.Future
@@ -17,6 +20,41 @@ import scala.concurrent.ExecutionContext.Implicits.global
 class TodoController @Inject()(val controllerComponents: ControllerComponents)
   extends BaseController
   with play.api.i18n.I18nSupport {
+
+  implicit val categoryIdFormat: Formatter[Category.Id] =
+    new Formatter[Category.Id] {
+      override def bind(
+        key:  String,
+        data: Map[String, String]): Either[Seq[FormError], Category.Id] = {
+        data.get(key) match {
+          case Some(s) =>
+            try {
+              Right(tag[Category.Id](s.toLong).asInstanceOf[Category.Id])
+            } catch {
+              case _: NumberFormatException =>
+                Left(Seq(FormError(key, "error.number", Nil)))
+            }
+          case None => Left(Seq(FormError(key, "error.required", Nil)))
+        }
+      }
+
+      override def unbind(key: String, value: Category.Id): Map[String, String] = Map(key -> value.toString)
+    }
+
+  implicit val todoStatusFormat = new Formatter[Todo.Status] {
+    override def bind(key: String, data: Map[String, String]): Either[Seq[FormError], Todo.Status] = {
+      data.get(key) match {
+        case Some(str) =>
+          try {
+            Right(Todo.Status.find(_.code == str.toShort).getOrElse(Todo.Status.IS_STARTED))
+          } catch {
+            case _: NumberFormatException => Left(Seq(FormError(key, "error.required", Nil)))
+          }
+        case None => Left(Seq(FormError(key, "error.required", Nil)))
+      }
+    }
+    override def unbind(key: String, value: Todo.Status): Map[String, String] = Map(key -> value.toString)
+  }
 
   private val todoForm: Form[TodoForm] = Form(
     mapping(
@@ -33,20 +71,8 @@ class TodoController @Inject()(val controllerComponents: ControllerComponents)
           body.matches(
             "[\\p{IsAlphabetic}\\p{IsDigit}\\p{IsIdeographic}\\r\\n]+")
       ),
-      "categoryId" -> longNumber.verifying(
-        "登録されているカテゴリーのみを入力してください",
-        categoryId =>
-          optionsOfCategoryId.exists {
-            case (code, _) => code.toLong == categoryId
-        }
-      ),
-      "state" -> shortNumber.verifying(
-        "登録されているステータスのみを入力してください",
-        state =>
-          optionsOfTodoStatus.exists {
-            case (strCode, _) => strCode.toShort == state
-        }
-      )
+      "categoryId" -> of[Category.Id],
+      "state" -> of[Todo.Status]
     )(TodoForm.apply)(TodoForm.unapply)
   )
 
@@ -105,8 +131,8 @@ class TodoController @Inject()(val controllerComponents: ControllerComponents)
     val defaultTodoForm = TodoForm(
       title = "",
       body = "",
-      categoryId = 1,
-      state = 0
+      categoryId = Category.Id(1),
+      state = Todo.Status.IS_STARTED
     )
     Ok(
       views.html.todo
@@ -159,7 +185,7 @@ class TodoController @Inject()(val controllerComponents: ControllerComponents)
           title = embeddedTodo.v.title,
           body = embeddedTodo.v.body,
           categoryId = embeddedTodo.v.categoryId,
-          state = embeddedTodo.v.state.code
+          state = embeddedTodo.v.state
         )
         Future.successful(
           Ok(
@@ -202,7 +228,7 @@ class TodoController @Inject()(val controllerComponents: ControllerComponents)
                     title = todo.title,
                     body = todo.body,
                     categoryId = Category.Id(todo.categoryId),
-                    state = Todo.Status(code = todo.state)
+                    state = todo.state
                   ))
 
                 TodoRepository.update(updatedTodo).map { _ =>
