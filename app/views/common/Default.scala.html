@@ -18,8 +18,12 @@
   <body>
     @* And here's where we render the `Html` object containing
     * the page content. *@
-    <header class="header container">
-      <div class="header__content"><span class="header__logo">To-do Sample</span></div>
+    <header class="header container uk-flex uk-flex-middle uk-flex-between">
+      <div class="header-left"><span class="header__logo">To-do Sample</span></div>
+      <ul class="header-right uk-flex uk-flex-between">
+        <li><a href="/todo" class="uk-margin-small-right">Todo</a></li>
+        <li><a href="/category">Category</a></li>
+      </ul>
     </header>
     <main class="h-100vh bg-gray container">
       @flash.get("success").map { message =>
