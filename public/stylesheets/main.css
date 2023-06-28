@@ -50,6 +50,10 @@ body {
 .container {
   padding: 16px 16px;
 }
+.w-800 {
+  max-width: 800px;
+  margin: auto;
+}
 
 /* backgroud color */
 .bg-white {
