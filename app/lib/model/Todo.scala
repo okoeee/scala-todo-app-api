@@ -6,7 +6,7 @@ import lib.model.Todo.Status
 
 import java.time.LocalDateTime
 
-case class Todo (
+case class Todo(
   id: Option[Todo.Id],
   categoryId: Category.Id,
   title: String,
@@ -20,7 +20,8 @@ object Todo {
   val Id = the[Identity[Id]]
   type Id = Long @@ Todo
 
-  sealed abstract class Status(val code: Short, val name: String) extends EnumStatus
+  sealed abstract class Status(val code: Short, val name: String)
+    extends EnumStatus
   object Status extends EnumStatus.Of[Status] {
     case object IS_STARTED extends Status(code = 0, name = "未着手")
     case object IS_PROGRESSIVE extends Status(code = 1, name = "進行中")

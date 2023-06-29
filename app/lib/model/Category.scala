@@ -6,7 +6,7 @@ import lib.model.Category.CategoryColor
 
 import java.time.LocalDateTime
 
-case class Category (
+case class Category(
   id: Option[Category.Id],
   name: String,
   slug: String,
@@ -19,14 +19,22 @@ object Category {
   val Id = the[Identity[Id]]
   type Id = Long @@ Category
 
-  sealed abstract class CategoryColor(val code: Short, val color: String) extends EnumStatus
+  sealed abstract class CategoryColor(
+    val code: Short,
+    val name: String,
+    val color: String
+  ) extends EnumStatus
   object CategoryColor extends EnumStatus.Of[CategoryColor] {
-    case object IS_FRONTEND extends CategoryColor(code = 1, color = "#FF5722") // フロントエンド
-    case object IS_BACKEND extends CategoryColor(code = 2, color = "#4CAF50") // バックエンド
-    case object IS_INFRA extends CategoryColor(code = 3, color = "#03A9F4") // インフラ
+    case object COLOR_OPTION1 extends CategoryColor(code = 1, name = "赤", color = "#FF5722")
+    case object COLOR_OPTION2 extends CategoryColor(code = 2, name = "緑", color = "#4CAF50")
+    case object COLOR_OPTION3 extends CategoryColor(code = 3, name = "青", color = "#03A9F4")
   }
 
-  def apply(name: String, slug: String, categoryColor: CategoryColor): Category#WithNoId =
+  def apply(
+    name: String,
+    slug: String,
+    categoryColor: CategoryColor
+  ): Category#WithNoId =
     new Category(
       id = None,
       name = name,

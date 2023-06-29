@@ -43,7 +43,7 @@ body {
   height: 100vh;
 }
 .container {
-  padding: 0 16px;
+  padding: 16px 16px;
 }
 
 /* backgroud color */
@@ -69,10 +69,35 @@ body {
   font-weight: bold;
 }
 
+/* form */
+.form-width {
+  width: 100%;
+  max-width: 400px;
+}
+
 /* category */
 .category {
   color: white;
   font-size: .8em;
   padding: 6px;
   border-radius: 16px;
+}
+
+/* a */
+a.a-hover-none {
+  color: currentColor
+}
+
+/* text */
+.success-message {
+  border: 2px solid #1e87f0;
+  color: #1e87f0;
+  font-weight: bold;
+  padding: 6px 12px;
+}
+.error-message {
+  border: 2px solid red;
+  color: red;
+  font-weight: bold;
+  padding: 6px 12px;
 }
