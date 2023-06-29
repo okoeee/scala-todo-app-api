@@ -1,5 +1,6 @@
 package service
 
+import lib.model.Category
 import lib.model.Category.CategoryColor
 import lib.persistence.onMySQL.{CategoryRepository, TodoRepository}
 import model.ViewValueTodo
@@ -26,6 +27,18 @@ object TodoService {
               .getOrElse(CategoryColor.COLOR_OPTION_NONE)
           )
         }
+    }
+  }
+
+  /**
+    * Categoryを削除した際、どのカテゴリーにも紐づいていないことを表すためにcategoryIdを0に変更する
+    */
+  def updateTodosOfNoneCategory(categoryId: Category.Id): Future[Int] = {
+    TodoRepository.getAllFilteredByCategoryId(categoryId).flatMap { seqEmbeddedTodo =>
+      val seqUpdatedTodo = seqEmbeddedTodo.map {
+        _.map(_.copy(categoryId = Category.Id(0)))
+      }
+      TodoRepository.bulkUpdate(seqUpdatedTodo)
     }
   }
 

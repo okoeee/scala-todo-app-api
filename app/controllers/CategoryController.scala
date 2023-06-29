@@ -4,12 +4,12 @@ import forms.CategoryForm
 import forms.CategoryForm.categoryForm
 import lib.model.Category
 import lib.model.Category.CategoryColor
-import lib.persistence.onMySQL.CategoryRepository
+import lib.persistence.onMySQL.{CategoryRepository, TodoRepository}
 
 import javax.inject._
 import play.api.mvc._
 import model.{ViewValueCategory, ViewValueHome}
-import service.CategoryService
+import service.{CategoryService, TodoService}
 
 import scala.concurrent.Future
 import scala.concurrent.ExecutionContext.Implicits.global
@@ -139,12 +139,19 @@ class CategoryController @Inject()(
             Redirect(routes.CategoryController.index())
               .flashing("error" -> "削除対象のカテゴリーが見つかりませんでした"))
         case Some(embeddedCategory) =>
-          CategoryRepository.remove(embeddedCategory.id).map { _ =>
-            Redirect(routes.CategoryController.index())
-              .flashing("success" -> "Categoryを削除しました")
+          CategoryRepository.remove(embeddedCategory.id).flatMap {
+            case None =>
+              Future.successful(Redirect(routes.CategoryController.index())
+                .flashing("error" -> "Categoryの削除に失敗しました"))
+            case Some(embeddedCategory) =>
+              TodoService.updateTodosOfNoneCategory(embeddedCategory.id).map {
+                _ =>
+                  Redirect(routes.CategoryController.index())
+                    .flashing("success" -> "Categoryを削除しました")
+              }
           } recover {
             case _: Exception =>
-              Redirect(routes.CategoryController.index())
+              Redirect(routes.TodoController.index())
                 .flashing("error" -> "Categoryの削除に失敗しました")
           }
       }
