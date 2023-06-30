@@ -21,23 +21,14 @@ object CategoryForm {
         key: String,
         data: Map[String, String]
       ): Either[Seq[FormError], CategoryColor] = {
-        data.get(key) match {
-          case None =>
-            Left(Seq(FormError(key, "フォームのname属性を正しく入力してください", Nil)))
-          case Some(s) =>
-            Try(s.toShort) match {
-              case Failure(_) =>
-                Left(Seq(FormError(key, "フォームのvalue属性を正しく入力してください", Nil)))
-              case Success(code) =>
-                CategoryColor.find(_.code == code) match {
-                  case None =>
-                    Left(Seq(FormError(key, "登録されている色を選択してください", Nil)))
-                  case Some(categoryColor) =>
-                    Right(categoryColor)
-                }
-            }
-        }
-      }
+        for {
+          str <- data.get(key).toRight("フォームのname属性を正しく入力してください")
+          code <- Try(str.toShort).toEither.left.map(_ =>
+            "フォームのvalue属性を正しく入力してください")
+          color <- Try(CategoryColor(code)).toEither.left.map(_ =>
+            "登録されているカテゴリーのみを登録してください")
+        } yield color
+      }.left.map(errMsg => Seq(FormError(key, errMsg, Nil)))
 
       override def unbind(
         key: String,
@@ -61,16 +52,7 @@ object CategoryForm {
       ),
       "categoryColor" -> of[CategoryColor]
       // transform ver
-//      "categoryColor" -> nonEmptyText.transform[CategoryColor](
-//        str =>
-//          Try(CategoryColor.find(_.code == str.toShort)) match {
-//            case Failure(_) =>
-//              CategoryColor.CategoryColor.COLOR_OPTION1
-//            case Success(categoryColor) =>
-//              categoryColor.getOrElse(CategoryColor.COLOR_OPTION1)
-//        },
-//        categoryColor => categoryColor.code.toString
-//      )
+      // "categoryColor" -> shortNumber.transform[CategoryColor](CategoryColor(_), _.code)
     )(CategoryForm.apply)(CategoryForm.unapply)
   )
 
