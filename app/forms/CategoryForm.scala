@@ -5,6 +5,8 @@ import play.api.data._
 import play.api.data.Forms._
 import play.api.data.format.Formatter
 
+import scala.util.{Try, Success, Failure}
+
 case class CategoryForm(
   name: String,
   slug: String,
@@ -17,19 +19,23 @@ object CategoryForm {
     new Formatter[CategoryColor] {
       override def bind(
         key: String,
-        data: Map[String, String]): Either[Seq[FormError], CategoryColor] = {
+        data: Map[String, String]
+      ): Either[Seq[FormError], CategoryColor] = {
         data.get(key) match {
+          case None =>
+            Left(Seq(FormError(key, "フォームのname属性を正しく入力してください", Nil)))
           case Some(s) =>
-            try {
-              Right(
-                CategoryColor
-                  .find(_.code == s.toShort)
-                  .getOrElse(CategoryColor.COLOR_OPTION_NONE))
-            } catch {
-              case _: NumberFormatException =>
-                Left(Seq(FormError(key, "error.number", Nil)))
+            Try(s.toShort) match {
+              case Failure(_) =>
+                Left(Seq(FormError(key, "フォームのvalue属性を正しく入力してください", Nil)))
+              case Success(code) =>
+                CategoryColor.find(_.code == code) match {
+                  case None =>
+                    Left(Seq(FormError(key, "登録されている色を選択してください", Nil)))
+                  case Some(categoryColor) =>
+                    Right(categoryColor)
+                }
             }
-          case None => Left(Seq(FormError(key, "error.required", Nil)))
         }
       }
 
@@ -54,6 +60,17 @@ object CategoryForm {
         slug => slug.matches("[a-zA-Z0-9]+") && !slug.contains("\n")
       ),
       "categoryColor" -> of[CategoryColor]
+      // transform ver
+//      "categoryColor" -> nonEmptyText.transform[CategoryColor](
+//        str =>
+//          Try(CategoryColor.find(_.code == str.toShort)) match {
+//            case Failure(_) =>
+//              CategoryColor.CategoryColor.COLOR_OPTION1
+//            case Success(categoryColor) =>
+//              categoryColor.getOrElse(CategoryColor.COLOR_OPTION1)
+//        },
+//        categoryColor => categoryColor.code.toString
+//      )
     )(CategoryForm.apply)(CategoryForm.unapply)
   )
 

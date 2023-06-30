@@ -26,10 +26,12 @@ class CategoryController @Inject()(
     jsSrc = Seq("main.js")
   )
 
-  private val optionsOfCategoryColor = CategoryColor.values.tail.map {
-    categoryColor =>
+  // CategoryColor.COLOR_OPTION_NONEはTodoにcategoryIdが設定されていない(categoryId=0)ときに使用するのため、selectフォーム用のoptionでは除いている
+  private val optionsOfCategoryColor = CategoryColor.values
+    .filterNot(_ == CategoryColor.COLOR_OPTION_NONE)
+    .map { categoryColor =>
       (categoryColor.code.toString, categoryColor.name)
-  }
+    }
 
   def index(): Action[AnyContent] = Action.async { implicit req =>
     val indexVv =
