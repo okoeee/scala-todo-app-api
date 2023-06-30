@@ -1,7 +1,7 @@
 package lib.persistence
 
 import ixias.persistence.SlickRepository
-import lib.model.Todo
+import lib.model.{Category, Todo}
 import slick.jdbc.JdbcProfile
 
 import scala.concurrent.Future
@@ -27,6 +27,15 @@ case class TodoRepository[P <: JdbcProfile]()(implicit val driver: P)
     RunDBAction(TodoTable, "slave") { _.sortBy(_.id).result }
 
   /**
+    * Get All Todo filtered by categoryId
+    */
+  def getAllFilteredByCategoryId(
+    categoryId: Category.Id): Future[Seq[EntityEmbeddedId]] =
+    RunDBAction(TodoTable, "slave") {
+      _.filter(_.categoryId === categoryId).result
+    }
+
+  /**
     * Add Todo Data
     */
   def add(entity: EntityWithNoId): Future[Id] =
@@ -48,6 +57,23 @@ case class TodoRepository[P <: JdbcProfile]()(implicit val driver: P)
         }
       } yield old
     }
+
+  /**
+    * Bulk update Todo Data
+    */
+  def bulkUpdate(entities: Seq[EntityEmbeddedId]): Future[Int] = {
+    val result: Future[Seq[Int]] =
+      RunDBAction(TodoTable) { slick =>
+        {
+          DBIO.sequence(
+            entities.map { d =>
+              slick.filter(_.id === d.v.id).update(d.v)
+            }
+          )
+        }.transactionally
+      }
+    result.map(_.sum)
+  }
 
   /**
     * Delete Todo Data

@@ -1,0 +1,14 @@
+@import helper._
+@import forms.CategoryForm
+
+@(vv: model.ViewValueCommon, categoryForm: Form[CategoryForm], optionsOfCategoryColor: Seq[(String, String)])(implicit req: RequestHeader, message: Messages, flash: Flash)
+
+@common.Default(vv){
+    @form(routes.CategoryController.createAction) {
+        @CSRF.formField
+        @inputText(categoryForm("name"), 'class -> "uk-input form-width")
+        @inputText(categoryForm("slug"), 'class -> "uk-input form-width")
+        @select(field = categoryForm("categoryColor"), options = optionsOfCategoryColor, 'class -> "uk-select form-width")
+        <input type="submit" class="uk-button uk-button-default bg-white">
+    }
+}

@@ -1,10 +1,13 @@
 package forms
 
 import ixias.model.tag
+
 import lib.model.{Category, Todo}
 import play.api.data._
 import play.api.data.Forms._
 import play.api.data.format.Formatter
+
+import scala.util.{Try, Success, Failure}
 
 case class TodoForm(
   title: String,
@@ -17,41 +20,45 @@ object TodoForm {
   implicit val categoryIdFormat: Formatter[Category.Id] =
     new Formatter[Category.Id] {
       override def bind(
-        key:  String,
-        data: Map[String, String]): Either[Seq[FormError], Category.Id] = {
+        key: String,
+        data: Map[String, String]
+      ): Either[Seq[FormError], Category.Id] = {
         data.get(key) match {
+          case None => Left(Seq(FormError(key, "フォームのname属性を正しく入力してください", Nil)))
           case Some(s) =>
-            try {
-              Right(tag[Category.Id](s.toLong).asInstanceOf[Category.Id])
-            } catch {
-              case _: NumberFormatException =>
-                Left(Seq(FormError(key, "error.number", Nil)))
+            Try(s.toLong) match {
+              case Failure(_) =>
+                Left(Seq(FormError(key, "フォームのvalue属性を正しく入力してください", Nil)))
+              case Success(id) =>
+                Right(tag[Category.Id](id).asInstanceOf[Category.Id])
             }
-          case None => Left(Seq(FormError(key, "error.required", Nil)))
         }
       }
 
-      override def unbind(key: String,
-        value:                 Category.Id): Map[String, String] =
+      override def unbind(
+        key: String,
+        value: Category.Id
+      ): Map[String, String] =
         Map(key -> value.toString)
     }
 
   implicit val todoStatusFormat = new Formatter[Todo.Status] {
     override def bind(
-      key:  String,
+      key: String,
       data: Map[String, String]): Either[Seq[FormError], Todo.Status] = {
       data.get(key) match {
+        case None => Left(Seq(FormError(key, "フォームのname属性を正しく入力してください", Nil)))
         case Some(str) =>
-          try {
-            Right(
-              Todo.Status
-                .find(_.code == str.toShort)
-                .getOrElse(Todo.Status.IS_STARTED))
-          } catch {
-            case _: NumberFormatException =>
-              Left(Seq(FormError(key, "error.required", Nil)))
+          Try(str.toShort) match {
+            case Failure(_) =>
+              Left(Seq(FormError(key, "フォームのvalue属性を正しく入力してください", Nil)))
+            case Success(code) =>
+              Todo.Status.find(_.code == code) match {
+                case None =>
+                  Left(Seq(FormError(key, "登録されているステータスを選択してください", Nil)))
+                case Some(todoStatus) => Right(todoStatus)
+              }
           }
-        case None => Left(Seq(FormError(key, "error.required", Nil)))
       }
     }
 
@@ -79,4 +86,3 @@ object TodoForm {
     )(TodoForm.apply)(TodoForm.unapply)
   )
 }
-

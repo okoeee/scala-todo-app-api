@@ -7,16 +7,20 @@ body {
   padding:  0;
 }
 
+/* header */
 .header {
   height:            70px;
   background-color:  #24292F;
 }
-
 .header .header__logo {
   color:             white;
   line-height:       70px;
   font-size:         20px;
   font-weight:       bold;
+}
+.header-right a {
+  color: #fff;
+  text-decoration: underline;
 }
 
 .main {
@@ -40,10 +44,15 @@ body {
 
 /* layout */
 .h-100vh {
-  height: 100vh;
+  min-height: 100vh;
+  height: 100%;
 }
 .container {
   padding: 16px 16px;
+}
+.w-800 {
+  max-width: 800px;
+  margin: auto;
 }
 
 /* backgroud color */
@@ -100,4 +109,12 @@ a.a-hover-none {
   color: red;
   font-weight: bold;
   padding: 6px 12px;
+}
+
+/* li */
+ul {
+  padding-left: 0;
+}
+li {
+  list-style: none;
 }

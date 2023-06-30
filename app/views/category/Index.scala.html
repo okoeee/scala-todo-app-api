@@ -1,0 +1,46 @@
+@import helper._
+
+@(vv: model.ViewValueCommon, categories: Seq[model.ViewValueCategory])(implicit req: RequestHeader, message: Messages, flash: Flash)
+
+@common.Default(vv){
+    <div class="uk-text-right uk-margin-bottom">
+        <a href="/category/create" >+新規作成</a>
+    </div>
+        <table class="uk-table uk-table-divider" style="background-color: #fff;">
+            <thead>
+                <tr>
+                    <th>name</th>
+                    <th>slug</th>
+                    <th>color</th>
+                    <th></th>
+                </tr>
+            </thead>
+            <tbody>
+                @for(category <- categories) {
+                    <tr>
+                        <td>@category.name</td>
+                        <td>@category.slug</td>
+                        <td style="background-color: @category.colorCategory.color; color: #fff;">@category.colorCategory.name</td>
+                        <td class="uk-flex" style="justify-content: end;">
+                            <a href="@routes.CategoryController.update(category.id)" uk-icon="icon: file-edit; ratio: 1.2" class="a-hover-none uk-padding-small"></a>
+                            @form(routes.CategoryController.removeAction(category.id), 'onSubmit -> s"return confirmFormSubmit(event, '${category.name}')") {
+                                @CSRF.formField
+                                <input type="hidden" name="_method" value="DELETE">
+                                <button id="btn-@category.id" type="submit" uk-icon="icon: trash; ratio: 1.2" class="uk-padding-small"></button>
+                            }
+                        </td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+}
+
+<script>
+function confirmFormSubmit(event, title) {
+  if (confirm(`${title}を削除しますか`)) {
+    return true;
+  } else {
+    return false;
+  }
+}
+</script>
