@@ -4,6 +4,7 @@ import json.reads.JsValueCreateTodo
 import json.writes.JsValueTodoListItem
 import lib.model.{Category, Todo}
 import lib.persistence.onMySQL.TodoRepository
+import model.ViewValueTodo
 import play.api.libs.json.{JsError, JsValue, Json}
 import play.api.mvc.{Action, AnyContent, BaseController, ControllerComponents}
 import service.TodoService
@@ -23,6 +24,15 @@ class TodoController @Inject()(val controllerComponents: ControllerComponents)
         JsValueTodoListItem(viewValueTodo)
       }
       Ok(Json.toJson(seqJsValue))
+    }
+  }
+
+  def show(id: Long): Action[AnyContent] = Action.async { implicit req =>
+    TodoService.getViewValueTodo(Todo.Id(id)).map {
+      case Left(msg) =>
+        BadRequest(Json.obj("status" -> "error", "message" -> msg))
+      case Right(viewValueTodo) =>
+        Ok(Json.toJson(JsValueTodoListItem(viewValueTodo)))
     }
   }
 

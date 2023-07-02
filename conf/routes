@@ -17,6 +17,7 @@ POST /category/delete/:id controllers.CategoryController.removeAction(id: Long)
 
 ## api
 GET /api/todo controllers.api.TodoController.index
+GET /api/todo/:id controllers.api.TodoController.show(id: Long)
 POST /api/todo controllers.api.TodoController.createAction
 GET /api/category controllers.api.CategoryController.index
 

@@ -8,6 +8,7 @@ case class JsValueTodoListItem(
   title: String,
   body: String,
   status: Short,
+  categoryId: Long,
   categoryName: String,
   categoryColor: Short
 )
@@ -22,6 +23,7 @@ object JsValueTodoListItem {
       title = viewValueTodo.title,
       body = viewValueTodo.body,
       status = viewValueTodo.status.code,
+      categoryId = viewValueTodo.categoryId,
       categoryName = viewValueTodo.categoryName,
       categoryColor = viewValueTodo.categoryColor.code
     )
