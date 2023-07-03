@@ -61,23 +61,33 @@ class TodoController @Inject()(val controllerComponents: ControllerComponents)
         )
   }
 
-  def updateAction(id: Long) = Action(parse.json).async { implicit req =>
-    req.body
-      .validate[JsValueUpdateTodo]
-      .fold(
-        errors => {
-          val errMsg = JsError.toJson(errors).toString
-          Future.successful(
-            BadRequest(Json.obj("status" -> "error", "message" -> errMsg)))
-        },
-        todoData => {
-          TodoService.updateTodo(id, todoData).map {
-            case Left(msg) =>
-              BadRequest(Json.obj("status" -> "error", "message" -> msg))
-            case Right(msg) => Ok(Json.obj("status" -> "ok", "message" -> msg))
+  def updateAction(id: Long): Action[JsValue] = Action(parse.json).async {
+    implicit req =>
+      req.body
+        .validate[JsValueUpdateTodo]
+        .fold(
+          errors => {
+            val errMsg = JsError.toJson(errors).toString
+            Future.successful(
+              BadRequest(Json.obj("status" -> "error", "message" -> errMsg)))
+          },
+          todoData => {
+            TodoService.updateTodo(id, todoData).map {
+              case Left(msg) =>
+                BadRequest(Json.obj("status" -> "error", "message" -> msg))
+              case Right(msg) =>
+                Ok(Json.obj("status" -> "ok", "message" -> msg))
+            }
           }
-        }
-      )
+        )
   }
 
+  def removeAction(id: Long): Action[AnyContent] = Action.async {
+    implicit req =>
+      TodoService.removeTodo(Todo.Id(id)).map {
+        case Left(msg) =>
+          BadRequest(Json.obj("status" -> "error", "message" -> msg))
+        case Right(msg) => Ok(Json.obj("status" -> "ok", "message" -> msg))
+      }
+  }
 }

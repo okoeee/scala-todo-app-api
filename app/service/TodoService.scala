@@ -95,4 +95,18 @@ object TodoService {
     }
   }
 
+  def removeTodo(todoId: Todo.Id): Future[Either[String, String]] = {
+    TodoRepository.get(todoId).flatMap {
+      case None =>
+        Future.successful(Left("削除対象のTodoが見つかりませんでした"))
+      case Some(embeddedTodo) =>
+        TodoRepository.remove(embeddedTodo.id).map { _ =>
+          Right("Todoを削除しました")
+        } recover {
+          case _: Exception =>
+            Left("Todoの削除に失敗しました")
+        }
+    }
+  }
+
 }
