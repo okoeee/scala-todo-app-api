@@ -19,6 +19,7 @@ POST /category/delete/:id controllers.CategoryController.removeAction(id: Long)
 GET /api/todo controllers.api.TodoController.index
 GET /api/todo/:id controllers.api.TodoController.show(id: Long)
 POST /api/todo controllers.api.TodoController.createAction
+PUT /api/todo/:id controllers.api.TodoController.updateAction(id: Long)
 GET /api/category controllers.api.CategoryController.index
 
 # Map static resources from the /public folder to the /assets URL path

@@ -1,5 +1,6 @@
 package service
 
+import json.reads.JsValueUpdateTodo
 import lib.model.{Category, Todo}
 import lib.model.Category.CategoryColor
 import lib.persistence.onMySQL.{CategoryRepository, TodoRepository}
@@ -52,6 +53,31 @@ object TodoService {
                   .getOrElse(CategoryColor.COLOR_OPTION_NONE)
               )
             )
+        }
+    }
+  }
+
+  def updateTodo(
+    id: Long,
+    todoFormData: JsValueUpdateTodo
+  ): Future[Either[String, String]] = {
+    TodoRepository.get(Todo.Id(id)).flatMap {
+      case None =>
+        Future.successful(Left("更新対象のTodoが見つかりませんでした"))
+      case Some(embeddedTodo) =>
+        val updatedTodo = embeddedTodo.map(
+          _.copy(
+            title = todoFormData.title,
+            body = todoFormData.body,
+            categoryId = Category.Id(todoFormData.categoryId),
+            state = Todo.Status(todoFormData.status)
+          ))
+
+        TodoRepository.update(updatedTodo).map { _ =>
+          Right("Todoを更新しました")
+        } recover {
+          case _: Exception =>
+            Left("Todoの更新に失敗しました")
         }
     }
   }

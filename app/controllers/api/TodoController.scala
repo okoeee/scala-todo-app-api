@@ -1,6 +1,6 @@
 package controllers.api
 
-import json.reads.JsValueCreateTodo
+import json.reads.{JsValueCreateTodo, JsValueUpdateTodo}
 import json.writes.JsValueTodoListItem
 import lib.model.{Category, Todo}
 import lib.persistence.onMySQL.TodoRepository
@@ -59,6 +59,25 @@ class TodoController @Inject()(val controllerComponents: ControllerComponents)
             }
           }
         )
+  }
+
+  def updateAction(id: Long) = Action(parse.json).async { implicit req =>
+    req.body
+      .validate[JsValueUpdateTodo]
+      .fold(
+        errors => {
+          val errMsg = JsError.toJson(errors).toString
+          Future.successful(
+            BadRequest(Json.obj("status" -> "error", "message" -> errMsg)))
+        },
+        todoData => {
+          TodoService.updateTodo(id, todoData).map {
+            case Left(msg) =>
+              BadRequest(Json.obj("status" -> "error", "message" -> msg))
+            case Right(msg) => Ok(Json.obj("status" -> "ok", "message" -> msg))
+          }
+        }
+      )
   }
 
 }
