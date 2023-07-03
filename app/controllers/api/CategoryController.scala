@@ -75,4 +75,12 @@ class CategoryController @Inject()(
         )
   }
 
+  def removeAction(id: Long): Action[AnyContent] = Action.async {
+    implicit req =>
+      CategoryService.remove(Category.Id(id)).map {
+        case Left(msg)  => JsonResponse.badRequest(msg)
+        case Right(msg) => JsonResponse.success(msg)
+      }
+  }
+
 }

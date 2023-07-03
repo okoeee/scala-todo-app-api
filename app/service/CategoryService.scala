@@ -63,6 +63,23 @@ object CategoryService {
     }
   }
 
+  def remove(categoryId: Category.Id): Future[Either[String, String]] = {
+    CategoryRepository.get(categoryId).flatMap {
+      case None => Future.successful(Left("削除対象のカテゴリが見つかりませんでした"))
+      case Some(embeddedCategory) =>
+        CategoryRepository.remove(embeddedCategory.id).flatMap {
+          case None => Future.successful(Left("カテゴリの削除に失敗しました"))
+          case Some(embeddedCategory) =>
+            TodoService.updateTodosOfNoneCategory(embeddedCategory.id).map {
+              _ =>
+                Right("カテゴリを削除しました")
+            }
+        } recover {
+          case _: Exception => Left("カテゴリの削除に失敗しました")
+        }
+    }
+  }
+
   /**
     * Formのselectボックスで使用する値を返す
     */
