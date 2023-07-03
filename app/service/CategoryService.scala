@@ -11,6 +11,22 @@ import scala.concurrent.ExecutionContext.Implicits.global
 
 object CategoryService {
 
+  def get(
+    categoryId: Category.Id
+  ): Future[Either[String, ViewValueCategory]] = {
+    CategoryRepository.get(categoryId).map {
+      case None => Left("カテゴリが見つかりませんでした")
+      case Some(embeddedCategory) =>
+        Right(
+          ViewValueCategory(
+            id = embeddedCategory.id,
+            name = embeddedCategory.v.name,
+            slug = embeddedCategory.v.slug,
+            colorCategory = embeddedCategory.v.categoryColor
+          )
+        )
+    }
+  }
   def add(
     categoryFormData: JsValueCreateCategory): Future[Either[String, String]] = {
     val categoryWithNoId = Category(
@@ -22,6 +38,28 @@ object CategoryService {
       Right("カテゴリを作成しました")
     } recover {
       case _: Exception => Left("カテゴリの作成に失敗しました")
+    }
+  }
+
+  def update(
+    categoryId: Category.Id,
+    categoryFormData: JsValueCreateCategory
+  ): Future[Either[String, String]] = {
+    CategoryRepository.get(categoryId).flatMap {
+      case None => Future.successful(Left("カテゴリが見つかりませんでした"))
+      case Some(embeddedCategory) =>
+        val updatedCategory = embeddedCategory.map(
+          _.copy(
+            name = categoryFormData.name,
+            slug = categoryFormData.slug,
+            categoryColor = CategoryColor(code = categoryFormData.categoryId)
+          )
+        )
+        CategoryRepository.update(updatedCategory).map { _ =>
+          Right("カテゴリを更新しました")
+        } recover {
+          case _: Exception => Left("カテゴリの更新に失敗しました")
+        }
     }
   }
 

@@ -30,6 +30,15 @@ class CategoryController @Inject()(
     }
   }
 
+  def show(id: Long): Action[AnyContent] = Action.async { implicit req =>
+    CategoryService.get(Category.Id(id)).map {
+      case Left(msg) =>
+        JsonResponse.badRequest(msg)
+      case Right(viewValueCategory) =>
+        Ok(Json.toJson(JsValueCategoryListItem(viewValueCategory)))
+    }
+  }
+
   def createAction(): Action[JsValue] = Action(parse.json).async {
     implicit req =>
       req.body
@@ -41,6 +50,24 @@ class CategoryController @Inject()(
           },
           categoryData => {
             CategoryService.add(categoryData).map {
+              case Left(msg)  => JsonResponse.badRequest(msg)
+              case Right(msg) => JsonResponse.success(msg)
+            }
+          }
+        )
+  }
+
+  def updateAction(id: Long): Action[JsValue] = Action(parse.json).async {
+    implicit req =>
+      req.body
+        .validate[JsValueCreateCategory]
+        .fold(
+          errors => {
+            val errMsg = JsError.toJson(errors).toString
+            Future.successful(JsonResponse.badRequest(errMsg))
+          },
+          categoryData => {
+            CategoryService.update(Category.Id(id), categoryData).map {
               case Left(msg)  => JsonResponse.badRequest(msg)
               case Right(msg) => JsonResponse.success(msg)
             }
