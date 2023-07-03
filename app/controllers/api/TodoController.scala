@@ -1,5 +1,6 @@
 package controllers.api
 
+import json.JsonResponse
 import json.reads.{JsValueCreateTodo, JsValueUpdateTodo}
 import json.writes.JsValueTodoListItem
 import lib.model.{Category, Todo}
@@ -19,7 +20,7 @@ class TodoController @Inject()(val controllerComponents: ControllerComponents)
   with play.api.i18n.I18nSupport {
 
   def index(): Action[AnyContent] = Action.async { implicit req =>
-    TodoService.getSeqViewValueTodo.map { seqViewValueTodo =>
+    TodoService.getAll.map { seqViewValueTodo =>
       val seqJsValue = seqViewValueTodo.map { viewValueTodo =>
         JsValueTodoListItem(viewValueTodo)
       }
@@ -28,9 +29,9 @@ class TodoController @Inject()(val controllerComponents: ControllerComponents)
   }
 
   def show(id: Long): Action[AnyContent] = Action.async { implicit req =>
-    TodoService.getViewValueTodo(Todo.Id(id)).map {
+    TodoService.get(Todo.Id(id)).map {
       case Left(msg) =>
-        BadRequest(Json.obj("status" -> "error", "message" -> msg))
+        JsonResponse.badRequest(msg)
       case Right(viewValueTodo) =>
         Ok(Json.toJson(JsValueTodoListItem(viewValueTodo)))
     }
@@ -43,8 +44,7 @@ class TodoController @Inject()(val controllerComponents: ControllerComponents)
         .fold(
           errors => {
             val errMsg = JsError.toJson(errors).toString
-            Future.successful(
-              BadRequest(Json.obj("status" -> "error", "message" -> errMsg)))
+            Future.successful(JsonResponse.badRequest(errMsg))
           },
           todoData => {
             val todoWithNoId: Todo#WithNoId = Todo(
@@ -55,7 +55,7 @@ class TodoController @Inject()(val controllerComponents: ControllerComponents)
             )
 
             TodoRepository.add(todoWithNoId).map { _ =>
-              Ok(Json.obj("status" -> "ok", "message" -> "Todoを作成しました"))
+              JsonResponse.success("Todoを作成しました")
             }
           }
         )
@@ -68,15 +68,14 @@ class TodoController @Inject()(val controllerComponents: ControllerComponents)
         .fold(
           errors => {
             val errMsg = JsError.toJson(errors).toString
-            Future.successful(
-              BadRequest(Json.obj("status" -> "error", "message" -> errMsg)))
+            Future.successful(JsonResponse.badRequest(errMsg))
           },
           todoData => {
-            TodoService.updateTodo(id, todoData).map {
+            TodoService.update(Todo.Id(id), todoData).map {
               case Left(msg) =>
-                BadRequest(Json.obj("status" -> "error", "message" -> msg))
+                JsonResponse.badRequest(msg)
               case Right(msg) =>
-                Ok(Json.obj("status" -> "ok", "message" -> msg))
+                JsonResponse.success(msg)
             }
           }
         )
@@ -84,7 +83,7 @@ class TodoController @Inject()(val controllerComponents: ControllerComponents)
 
   def removeAction(id: Long): Action[AnyContent] = Action.async {
     implicit req =>
-      TodoService.removeTodo(Todo.Id(id)).map {
+      TodoService.remove(Todo.Id(id)).map {
         case Left(msg) =>
           BadRequest(Json.obj("status" -> "error", "message" -> msg))
         case Right(msg) => Ok(Json.obj("status" -> "ok", "message" -> msg))

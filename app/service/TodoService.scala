@@ -11,7 +11,7 @@ import scala.concurrent.ExecutionContext.Implicits.global
 
 object TodoService {
 
-  def getSeqViewValueTodo: Future[Seq[ViewValueTodo]] = {
+  def getAll: Future[Seq[ViewValueTodo]] = {
     (TodoRepository.getAll zip CategoryRepository.getAll).map {
       case (todos, categories) =>
         todos.map { embeddedTodo =>
@@ -32,7 +32,7 @@ object TodoService {
     }
   }
 
-  def getViewValueTodo(id: Todo.Id): Future[Either[String, ViewValueTodo]] = {
+  def get(id: Todo.Id): Future[Either[String, ViewValueTodo]] = {
     TodoRepository.get(id).flatMap {
       case None => Future.successful(Left("Todoが見つかりませんでした"))
       case Some(embeddedTodo) =>
@@ -57,11 +57,11 @@ object TodoService {
     }
   }
 
-  def updateTodo(
-    id: Long,
+  def update(
+    todoId: Todo.Id,
     todoFormData: JsValueUpdateTodo
   ): Future[Either[String, String]] = {
-    TodoRepository.get(Todo.Id(id)).flatMap {
+    TodoRepository.get(todoId).flatMap {
       case None =>
         Future.successful(Left("更新対象のTodoが見つかりませんでした"))
       case Some(embeddedTodo) =>
@@ -82,20 +82,7 @@ object TodoService {
     }
   }
 
-  /**
-    * Categoryを削除した際、どのカテゴリーにも紐づいていないことを表すためにcategoryIdを0に変更する
-    */
-  def updateTodosOfNoneCategory(categoryId: Category.Id): Future[Int] = {
-    TodoRepository.getAllFilteredByCategoryId(categoryId).flatMap {
-      seqEmbeddedTodo =>
-        val seqUpdatedTodo = seqEmbeddedTodo.map {
-          _.map(_.copy(categoryId = Category.Id(0)))
-        }
-        TodoRepository.bulkUpdate(seqUpdatedTodo)
-    }
-  }
-
-  def removeTodo(todoId: Todo.Id): Future[Either[String, String]] = {
+  def remove(todoId: Todo.Id): Future[Either[String, String]] = {
     TodoRepository.get(todoId).flatMap {
       case None =>
         Future.successful(Left("削除対象のTodoが見つかりませんでした"))
@@ -106,6 +93,19 @@ object TodoService {
           case _: Exception =>
             Left("Todoの削除に失敗しました")
         }
+    }
+  }
+
+  /**
+   * Categoryを削除した際、どのカテゴリーにも紐づいていないことを表すためにcategoryIdを0に変更する
+   */
+  def updateTodosOfNoneCategory(categoryId: Category.Id): Future[Int] = {
+    TodoRepository.getAllFilteredByCategoryId(categoryId).flatMap {
+      seqEmbeddedTodo =>
+        val seqUpdatedTodo = seqEmbeddedTodo.map {
+          _.map(_.copy(categoryId = Category.Id(0)))
+        }
+        TodoRepository.bulkUpdate(seqUpdatedTodo)
     }
   }
 
