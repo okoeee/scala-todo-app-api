@@ -4,6 +4,7 @@ import forms.{LoginForm, RegistrationForm}
 import lib.model.User
 import lib.persistence.onMySQL.UserRepository
 import mvc.auth.UserAuthProfile
+import org.mindrot.jbcrypt.BCrypt
 
 import scala.concurrent.Future
 import scala.concurrent.ExecutionContext.Implicits.global
@@ -19,7 +20,8 @@ object UserService {
         val userWithNoId = User(
           name = registrationForm.name,
           email = registrationForm.email,
-          password = registrationForm.password
+          password =
+            BCrypt.hashpw(registrationForm.password, BCrypt.gensalt(10))
         )
         UserRepository.add(userWithNoId).map { userId =>
           Right(userId)
@@ -33,7 +35,7 @@ object UserService {
   def login(loginForm: LoginForm): Future[Either[String, User.Id]] = {
     UserRepository.getByEmail(loginForm.email).flatMap {
       case None => Future.successful(Left("メールアドレスかパスワードが間違っています"))
-      case Some(user) if user.v.password == loginForm.password =>
+      case Some(user) if BCrypt.checkpw(loginForm.password, user.v.password) =>
         Future.successful(Right(user.id))
     }
   }
