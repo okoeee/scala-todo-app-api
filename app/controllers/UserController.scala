@@ -1,10 +1,11 @@
 package controllers
 
+import forms.LoginForm.loginForm
 import forms.RegistrationForm.registrationForm
 import ixias.play.api.auth.mvc.AuthExtensionMethods
 import model.ViewValueHome
 import mvc.auth.UserAuthProfile
-import play.api.mvc.{BaseController, ControllerComponents}
+import play.api.mvc.{Action, AnyContent, BaseController, ControllerComponents}
 import service.UserService
 
 import javax.inject.{Inject, Singleton}
@@ -56,6 +57,48 @@ class UserController @Inject()(
           }
         }
       )
+  }
+
+  def login(): Action[AnyContent] = AuthenticatedOrNot(authProfile) {
+    implicit req =>
+      authProfile.loggedIn match {
+        case Some(_) => Redirect(routes.HomeController.index())
+        case None =>
+          Ok(views.html.auth.Login(vv.copy(title = "ログイン"), loginForm))
+      }
+  }
+
+  def loginAction(): Action[AnyContent] = Action.async { implicit req =>
+    loginForm
+      .bindFromRequest()
+      .fold(
+        formWithErrors => {
+          Future.successful(
+            Ok(views.html.auth.Login(vv.copy(title = "ログイン"), formWithErrors))
+          )
+        },
+        loginForm =>
+          UserService.login(loginForm).flatMap {
+            case Left(message) =>
+              Future.successful(
+                Redirect(routes.UserController.login())
+                  .flashing("error" -> message)
+              )
+            case Right(userId) =>
+              authProfile.loginSucceeded(userId, { _ =>
+                Redirect(routes.HomeController.index())
+              })
+        }
+      )
+  }
+
+  def logout(): Action[AnyContent] = Authenticated(authProfile).async {
+    implicit req =>
+      authProfile.loggedIn { user =>
+        authProfile.logoutSucceeded(user.id, {
+          Redirect(routes.UserController.login())
+        })
+      }
   }
 
 }

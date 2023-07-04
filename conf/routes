@@ -17,6 +17,9 @@ POST /category/delete/:id controllers.CategoryController.removeAction(id: Long)
 
 GET /registration controllers.UserController.registration
 POST /registration controllers.UserController.registrationAction
+GET /login controllers.UserController.login
+POST /login controllers.UserController.loginAction
+GET /logout controllers.UserController.logout
 
 ## api
 GET /api/todo controllers.api.TodoController.index

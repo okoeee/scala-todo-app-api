@@ -1,6 +1,6 @@
 package service
 
-import forms.RegistrationForm
+import forms.{LoginForm, RegistrationForm}
 import lib.model.User
 import lib.persistence.onMySQL.UserRepository
 import mvc.auth.UserAuthProfile
@@ -27,6 +27,14 @@ object UserService {
           case _: Exception => Left("登録に失敗しました")
         }
       }
+    }
+  }
+
+  def login(loginForm: LoginForm): Future[Either[String, User.Id]] = {
+    UserRepository.getByEmail(loginForm.email).flatMap {
+      case None => Future.successful(Left("メールアドレスかパスワードが間違っています"))
+      case Some(user) if user.v.password == loginForm.password =>
+        Future.successful(Right(user.id))
     }
   }
 

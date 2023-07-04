@@ -38,4 +38,14 @@ case class UserAuthProfile @Inject()(
       token <- datastore.open(id, sessionTimeout)
     } yield tokenAccessor.put(token)(block(token))
 
+  override def logoutSucceeded(id: Id, block: => Result)(
+    implicit rh: RequestHeader): Future[Result] = {
+    for {
+      _ <- tokenAccessor.extract match {
+        case None        => Future.successful(())
+        case Some(token) => datastore.destroy(token)
+      }
+    } yield tokenAccessor.discard(block)
+  }
+
 }
