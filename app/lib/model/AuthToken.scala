@@ -8,7 +8,7 @@ import ixias.play.api.auth.token.Token.AuthenticityToken
 
 case class AuthToken(
   id: Option[Id],
-  uid: User.Id,
+  userId: User.Id,
   token: AuthenticityToken,
   expiry: Option[Duration] = None,
   updatedAt: LocalDateTime = NOW,
@@ -23,13 +23,13 @@ object AuthToken {
   type EmbeddedId = Entity.EmbeddedId[Id, AuthToken]
 
   def apply(
-    uid: User.Id,
+    userId: User.Id,
     token: AuthenticityToken,
     expiry: Option[Duration]
   ): AuthToken#WithNoId =
     new AuthToken(
       id = None,
-      uid = uid,
+      userId = userId,
       token = token,
       expiry = expiry
     ).toWithNoId

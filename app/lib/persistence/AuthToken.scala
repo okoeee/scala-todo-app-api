@@ -2,7 +2,8 @@ package lib.persistence
 
 import scala.concurrent.Future
 import ixias.persistence.SlickRepository
-import lib.model.AuthToken
+import ixias.play.api.auth.token.Token.AuthenticityToken
+import lib.model.{AuthToken, User}
 import slick.jdbc.JdbcProfile
 
 case class AuthTokenRepository[P <: JdbcProfile]()(implicit val driver: P)
@@ -17,6 +18,22 @@ case class AuthTokenRepository[P <: JdbcProfile]()(implicit val driver: P)
   def get(id: Id): Future[Option[EntityEmbeddedId]] =
     RunDBAction(AuthTokenTable, "slave") {
       _.filter(_.id === id).result.headOption
+    }
+
+  /**
+    * Get AuthToken By User Id
+    */
+  def getByUserId(userId: User.Id): Future[Option[EntityEmbeddedId]] =
+    RunDBAction(AuthTokenTable, "slave") {
+      _.filter(_.userId === userId).result.headOption
+    }
+
+  /**
+    * Get AuthToken By Token
+    */
+  def getByToken(token: AuthenticityToken): Future[Option[EntityEmbeddedId]] =
+    RunDBAction(AuthTokenTable, "slave") {
+      _.filter(_.token === token).result.headOption
     }
 
   /**
