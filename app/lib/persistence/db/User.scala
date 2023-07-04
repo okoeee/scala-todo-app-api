@@ -11,8 +11,8 @@ case class UserTable[P <: JdbcProfile]()(implicit val driver: P)
   import api._
 
   lazy val dsn = Map(
-    "master" -> DataSourceName("ixias.db.mysql://master/user"),
-    "slave" -> DataSourceName("ixias.db.mysql://slave/user")
+    "master" -> DataSourceName("ixias.db.mysql://master/to_do"),
+    "slave" -> DataSourceName("ixias.db.mysql://slave/to_do")
   )
 
   class Query extends BasicQuery(new Table(_)) {}

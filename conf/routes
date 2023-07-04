@@ -15,6 +15,9 @@ GET /category/update/:id controllers.CategoryController.update(id: Long)
 POST /category/update/:id controllers.CategoryController.updateAction(id: Long)
 POST /category/delete/:id controllers.CategoryController.removeAction(id: Long)
 
+GET /registration controllers.UserController.registration
+POST /registration controllers.UserController.registrationAction
+
 ## api
 GET /api/todo controllers.api.TodoController.index
 GET /api/todo/:id controllers.api.TodoController.show(id: Long)

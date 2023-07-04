@@ -32,10 +32,10 @@ case class UserAuthProfile @Inject()(
     implicit request: RequestHeader): Option[Duration] =
     Some(Duration.ofHours(24L))
 
-//  override def loginSucceeded(id: Id, block: AuthenticityToken => Result)(
-//    implicit rh: RequestHeader): Future[Result] =
-//    for {
-//      token <- datastore.open(id, sessionTimeout)
-//    } yield tokenAccessor.put(token)(block(token))
+  override def loginSucceeded(id: Id, block: AuthenticityToken => Result)(
+    implicit rh: RequestHeader): Future[Result] =
+    for {
+      token <- datastore.open(id, sessionTimeout)
+    } yield tokenAccessor.put(token)(block(token))
 
 }

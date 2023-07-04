@@ -11,8 +11,8 @@ case class AuthTokenTable[P <: JdbcProfile]()(implicit val driver: P)
   import api._
 
   lazy val dsn = Map(
-    "master" -> DataSourceName("ixias.db.mysql://master/auth_token"),
-    "slave" -> DataSourceName("ixias.db.mysql://slave/auth_token")
+    "master" -> DataSourceName("ixias.db.mysql://master/to_do"),
+    "slave" -> DataSourceName("ixias.db.mysql://slave/to_do")
   )
 
   class Query extends BasicQuery(new Table(_)) {}

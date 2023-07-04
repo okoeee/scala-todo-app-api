@@ -1,0 +1,14 @@
+@import helper._
+@import forms.RegistrationForm
+
+@(vv: model.ViewValueCommon, registrationForm: Form[RegistrationForm])(implicit req: RequestHeader, message: Messages, flash: Flash)
+
+@common.Default(vv){
+    @form(routes.UserController.registrationAction) {
+        @CSRF.formField
+        @inputText(registrationForm("name"), 'class -> "uk-input form-width")
+        @inputText(registrationForm("email"), 'class -> "uk-input form-width")
+        @inputText(registrationForm("password"), 'class -> "uk-input form-width")
+        <input type="submit" class="uk-button uk-button-default bg-white">
+    }
+}
