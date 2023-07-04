@@ -8,14 +8,19 @@ import play.api.mvc._
 import model.ViewValueHome
 import forms.TodoForm
 import forms.TodoForm.todoForm
+import ixias.play.api.auth.mvc.AuthExtensionMethods
+import mvc.auth.UserAuthProfile
 import service.{CategoryService, TodoService}
 
-import scala.concurrent.Future
-import scala.concurrent.ExecutionContext.Implicits.global
+import scala.concurrent.{ExecutionContext, Future}
 
 @Singleton
-class TodoController @Inject()(val controllerComponents: ControllerComponents)
-  extends BaseController
+class TodoController @Inject()(
+  val controllerComponents: ControllerComponents,
+  val authProfile: UserAuthProfile
+)(implicit ec: ExecutionContext)
+  extends AuthExtensionMethods
+  with BaseController
   with play.api.i18n.I18nSupport {
 
   private val vv = ViewValueHome(
@@ -28,16 +33,23 @@ class TodoController @Inject()(val controllerComponents: ControllerComponents)
     (todoStatus.code.toString, todoStatus.name)
   }
 
-  def index(): Action[AnyContent] = Action.async { implicit req =>
-    val vv = ViewValueHome(
-      title = "Home",
-      cssSrc = Seq("uikit.min.css", "main.css"),
-      jsSrc = Seq("uikit.min.js", "uikit-icons.min.js", "main.js")
-    )
-
-    TodoService.getAll.map { seqViewValueTodo =>
-      Ok(views.html.todo.Index(vv, seqViewValueTodo, todoForm))
-    }
+  def index(): Action[AnyContent] = AuthenticatedOrNot(authProfile).async {
+    implicit req =>
+      authProfile.loggedIn match {
+        case Some(_) =>
+          val vv = ViewValueHome(
+            title = "Home",
+            cssSrc = Seq("uikit.min.css", "main.css"),
+            jsSrc = Seq("uikit.min.js", "uikit-icons.min.js", "main.js")
+          )
+          TodoService.getAll.map { seqViewValueTodo =>
+            Ok(views.html.todo.Index(vv, seqViewValueTodo, todoForm))
+          }
+        case None =>
+          Future.successful(
+            Redirect(routes.UserController.login())
+              .flashing("error" -> "ログインもしくは会員登録をしてください"))
+      }
   }
 
   def create: Action[AnyContent] = Action.async { implicit req =>
@@ -45,7 +57,8 @@ class TodoController @Inject()(val controllerComponents: ControllerComponents)
       val defaultTodoForm = TodoForm(
         title = "",
         body = "",
-        categoryId = Category.Id(optionsOfCategory.headOption.map(_._1.toLong).getOrElse(0L)),
+        categoryId = Category.Id(
+          optionsOfCategory.headOption.map(_._1.toLong).getOrElse(0L)),
         state = Todo.Status.IS_STARTED
       )
       Ok(

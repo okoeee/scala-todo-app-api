@@ -21,7 +21,7 @@ class UserController @Inject()(
   with play.api.i18n.I18nSupport {
 
   val vv = ViewValueHome(
-    title = "ユーザー",
+    title = "",
     cssSrc = Seq("uikit.min.css", "main.css"),
     jsSrc = Seq("main.js")
   )
@@ -30,7 +30,11 @@ class UserController @Inject()(
     authProfile.loggedIn match {
       case Some(user) => Redirect(routes.HomeController.index())
       case None =>
-        Ok(views.html.auth.Registration(vv, registrationForm))
+        Ok(
+          views.html.auth.Registration(
+            vv.copy(title = "会員登録"),
+            registrationForm
+          ))
     }
   }
 
