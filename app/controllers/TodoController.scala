@@ -35,7 +35,7 @@ class TodoController @Inject()(val controllerComponents: ControllerComponents)
       jsSrc = Seq("uikit.min.js", "uikit-icons.min.js", "main.js")
     )
 
-    TodoService.getSeqViewValueTodo.map { seqViewValueTodo =>
+    TodoService.getAll.map { seqViewValueTodo =>
       Ok(views.html.todo.Index(vv, seqViewValueTodo, todoForm))
     }
   }
