@@ -5,7 +5,7 @@ import play.api.libs.json.{Json, Reads}
 case class JsValueCreateCategory(
   name: String,
   slug: String,
-  categoryId: Short
+  categoryColorId: Short
 )
 
 object JsValueCreateCategory {

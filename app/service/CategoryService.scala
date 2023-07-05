@@ -35,7 +35,7 @@ object CategoryService {
     val categoryWithNoId = Category(
       name = categoryFormData.name,
       slug = categoryFormData.slug,
-      categoryColor = CategoryColor(code = categoryFormData.categoryId)
+      categoryColor = CategoryColor(code = categoryFormData.categoryColorId)
     )
     CategoryRepository.add(categoryWithNoId).map { _ =>
       logger.info("カテゴリを作成しました")
@@ -58,7 +58,8 @@ object CategoryService {
           _.copy(
             name = categoryFormData.name,
             slug = categoryFormData.slug,
-            categoryColor = CategoryColor(code = categoryFormData.categoryId)
+            categoryColor =
+              CategoryColor(code = categoryFormData.categoryColorId)
           )
         )
         CategoryRepository.update(updatedCategory).map { _ =>
