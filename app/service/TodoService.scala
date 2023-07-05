@@ -70,7 +70,7 @@ object TodoService {
             title = todoFormData.title,
             body = todoFormData.body,
             categoryId = Category.Id(todoFormData.categoryId),
-            state = Todo.Status(todoFormData.status)
+            state = todoFormData.status
           ))
 
         TodoRepository.update(updatedTodo).map { _ =>
@@ -97,8 +97,8 @@ object TodoService {
   }
 
   /**
-   * Categoryを削除した際、どのカテゴリーにも紐づいていないことを表すためにcategoryIdを0に変更する
-   */
+    * Categoryを削除した際、どのカテゴリーにも紐づいていないことを表すためにcategoryIdを0に変更する
+    */
   def updateTodosOfNoneCategory(categoryId: Category.Id): Future[Int] = {
     TodoRepository.getAllFilteredByCategoryId(categoryId).flatMap {
       seqEmbeddedTodo =>
