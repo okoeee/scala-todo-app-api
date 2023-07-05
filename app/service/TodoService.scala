@@ -77,6 +77,7 @@ object TodoService {
           ))
 
         TodoRepository.update(updatedTodo).map { _ =>
+          logger.info("Todoを更新しました")
           Right("Todoを更新しました")
         } recover {
           case e: Exception =>
@@ -92,6 +93,7 @@ object TodoService {
         Future.successful(Left("削除対象のTodoが見つかりませんでした"))
       case Some(embeddedTodo) =>
         TodoRepository.remove(embeddedTodo.id).map { _ =>
+          logger.info("Todoを削除しました")
           Right("Todoを削除しました")
         } recover {
           case e: Exception =>
