@@ -1,15 +1,18 @@
 package service
 
-import json.reads.JsValueUpdateTodo
+import json.reads.{JsValueCreateTodo, JsValueUpdateTodo}
 import lib.model.{Category, Todo}
 import lib.model.Category.CategoryColor
 import lib.persistence.onMySQL.{CategoryRepository, TodoRepository}
 import model.ViewValueTodo
+import play.api.Logger
 
 import scala.concurrent.Future
 import scala.concurrent.ExecutionContext.Implicits.global
 
 object TodoService {
+
+  private val logger = Logger(this.getClass)
 
   def getAll: Future[Seq[ViewValueTodo]] = {
     (TodoRepository.getAll zip CategoryRepository.getAll).map {
@@ -57,6 +60,26 @@ object TodoService {
     }
   }
 
+  def create(
+    todoFormData: JsValueCreateTodo
+  ): Future[Either[String, String]] = {
+    val todoWithNoId: Todo#WithNoId = Todo(
+      categoryId = Category.Id(todoFormData.categoryId),
+      title = todoFormData.title,
+      body = todoFormData.body,
+      state = Todo.Status.IS_STARTED
+    )
+
+    TodoRepository.add(todoWithNoId).map { _ =>
+      logger.info("Todoを作成しました")
+      Right("Todoを作成しました")
+    } recover {
+      case e: Exception =>
+        logger.error("Todoの作成に失敗しました", e)
+        Left("Todoの作成に失敗しました")
+    }
+  }
+
   def update(
     todoId: Todo.Id,
     todoFormData: JsValueUpdateTodo
@@ -70,13 +93,15 @@ object TodoService {
             title = todoFormData.title,
             body = todoFormData.body,
             categoryId = Category.Id(todoFormData.categoryId),
-            state = Todo.Status(todoFormData.status)
+            state = todoFormData.status
           ))
 
         TodoRepository.update(updatedTodo).map { _ =>
+          logger.info("Todoを更新しました")
           Right("Todoを更新しました")
         } recover {
-          case _: Exception =>
+          case e: Exception =>
+            logger.error("Todoの更新に失敗しました", e)
             Left("Todoの更新に失敗しました")
         }
     }
@@ -88,17 +113,19 @@ object TodoService {
         Future.successful(Left("削除対象のTodoが見つかりませんでした"))
       case Some(embeddedTodo) =>
         TodoRepository.remove(embeddedTodo.id).map { _ =>
+          logger.info("Todoを削除しました")
           Right("Todoを削除しました")
         } recover {
-          case _: Exception =>
+          case e: Exception =>
+            logger.error("Todoの削除に失敗しました", e)
             Left("Todoの削除に失敗しました")
         }
     }
   }
 
   /**
-   * Categoryを削除した際、どのカテゴリーにも紐づいていないことを表すためにcategoryIdを0に変更する
-   */
+    * Categoryを削除した際、どのカテゴリーにも紐づいていないことを表すためにcategoryIdを0に変更する
+    */
   def updateTodosOfNoneCategory(categoryId: Category.Id): Future[Int] = {
     TodoRepository.getAllFilteredByCategoryId(categoryId).flatMap {
       seqEmbeddedTodo =>

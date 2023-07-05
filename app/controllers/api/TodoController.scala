@@ -3,9 +3,7 @@ package controllers.api
 import json.JsonResponse
 import json.reads.{JsValueCreateTodo, JsValueUpdateTodo}
 import json.writes.JsValueTodoListItem
-import lib.model.{Category, Todo}
-import lib.persistence.onMySQL.TodoRepository
-import model.ViewValueTodo
+import lib.model.Todo
 import play.api.libs.json.{JsError, JsValue, Json}
 import play.api.mvc.{Action, AnyContent, BaseController, ControllerComponents}
 import service.TodoService
@@ -47,15 +45,11 @@ class TodoController @Inject()(val controllerComponents: ControllerComponents)
             Future.successful(JsonResponse.badRequest(errMsg))
           },
           todoData => {
-            val todoWithNoId: Todo#WithNoId = Todo(
-              categoryId = Category.Id(todoData.categoryId),
-              title = todoData.title,
-              body = todoData.body,
-              state = Todo.Status.IS_STARTED
-            )
-
-            TodoRepository.add(todoWithNoId).map { _ =>
-              JsonResponse.success("Todoを作成しました")
+            TodoService.create(todoData).map {
+              case Left(msg) =>
+                JsonResponse.badRequest(msg)
+              case Right(msg) =>
+                JsonResponse.success(msg)
             }
           }
         )
