@@ -5,11 +5,14 @@ import lib.model.{Category, Todo}
 import lib.model.Category.CategoryColor
 import lib.persistence.onMySQL.{CategoryRepository, TodoRepository}
 import model.ViewValueTodo
+import play.api.Logger
 
 import scala.concurrent.Future
 import scala.concurrent.ExecutionContext.Implicits.global
 
 object TodoService {
+
+  private val logger = Logger(this.getClass)
 
   def getAll: Future[Seq[ViewValueTodo]] = {
     (TodoRepository.getAll zip CategoryRepository.getAll).map {
@@ -76,7 +79,8 @@ object TodoService {
         TodoRepository.update(updatedTodo).map { _ =>
           Right("Todoを更新しました")
         } recover {
-          case _: Exception =>
+          case e: Exception =>
+            logger.error("Todoの更新に失敗しました", e)
             Left("Todoの更新に失敗しました")
         }
     }
@@ -90,7 +94,8 @@ object TodoService {
         TodoRepository.remove(embeddedTodo.id).map { _ =>
           Right("Todoを削除しました")
         } recover {
-          case _: Exception =>
+          case e: Exception =>
+            logger.error("Todoの削除に失敗しました", e)
             Left("Todoの削除に失敗しました")
         }
     }
