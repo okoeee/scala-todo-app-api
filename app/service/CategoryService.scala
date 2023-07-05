@@ -2,7 +2,6 @@ package service
 
 import json.reads.JsValueCreateCategory
 import lib.model.Category
-import lib.model.Category.CategoryColor
 import lib.persistence.onMySQL.CategoryRepository
 import model.ViewValueCategory
 import play.api.Logger
@@ -35,7 +34,7 @@ object CategoryService {
     val categoryWithNoId = Category(
       name = categoryFormData.name,
       slug = categoryFormData.slug,
-      categoryColor = CategoryColor(code = categoryFormData.categoryColorId)
+      categoryColor = categoryFormData.categoryColorId
     )
     CategoryRepository.add(categoryWithNoId).map { _ =>
       logger.info("カテゴリを作成しました")
@@ -58,8 +57,7 @@ object CategoryService {
           _.copy(
             name = categoryFormData.name,
             slug = categoryFormData.slug,
-            categoryColor =
-              CategoryColor(code = categoryFormData.categoryColorId)
+            categoryColor = categoryFormData.categoryColorId
           )
         )
         CategoryRepository.update(updatedCategory).map { _ =>
