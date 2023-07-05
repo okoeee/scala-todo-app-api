@@ -22,19 +22,23 @@ POST /login controllers.UserController.loginAction
 GET /logout controllers.UserController.logout
 
 ## api
+### todo
 GET /api/todo controllers.api.TodoController.index
 GET /api/todo/:id controllers.api.TodoController.show(id: Long)
 POST /api/todo controllers.api.TodoController.createAction
 PUT /api/todo/:id controllers.api.TodoController.updateAction(id: Long)
 DELETE /api/todo/:id controllers.api.TodoController.removeAction(id: Long)
 
+### category
 GET /api/category controllers.api.CategoryController.index
 GET /api/category/:id controllers.api.CategoryController.show(id: Long)
 POST /api/category controllers.api.CategoryController.createAction
 PUT /api/category/:id controllers.api.CategoryController.updateAction(id: Long)
 DELETE /api/category/:id controllers.api.CategoryController.removeAction(id: Long)
 
+### user
 GET /api/auth controllers.api.UserController.auth
+POST /api/auth/login controllers.api.UserController.login
 
 # Map static resources from the /public folder to the /assets URL path
 GET /assets/*file controllers.Assets.versioned(path="/public", file: Asset)
