@@ -1,6 +1,6 @@
 package service
 
-import json.reads.JsValueUpdateTodo
+import json.reads.{JsValueCreateTodo, JsValueUpdateTodo}
 import lib.model.{Category, Todo}
 import lib.model.Category.CategoryColor
 import lib.persistence.onMySQL.{CategoryRepository, TodoRepository}
@@ -57,6 +57,26 @@ object TodoService {
               )
             )
         }
+    }
+  }
+
+  def create(
+    todoFormData: JsValueCreateTodo
+  ): Future[Either[String, String]] = {
+    val todoWithNoId: Todo#WithNoId = Todo(
+      categoryId = Category.Id(todoFormData.categoryId),
+      title = todoFormData.title,
+      body = todoFormData.body,
+      state = Todo.Status.IS_STARTED
+    )
+
+    TodoRepository.add(todoWithNoId).map { _ =>
+      logger.info("Todoを作成しました")
+      Right("Todoを作成しました")
+    } recover {
+      case e: Exception =>
+        logger.error("Todoの作成に失敗しました", e)
+        Left("Todoの作成に失敗しました")
     }
   }
 
