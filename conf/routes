@@ -37,7 +37,7 @@ PUT /api/category/:id controllers.api.CategoryController.updateAction(id: Long)
 DELETE /api/category/:id controllers.api.CategoryController.removeAction(id: Long)
 
 ### user
-GET /api/auth controllers.api.UserController.verify
+GET /api/auth/verify controllers.api.UserController.verify
 POST /api/auth/login controllers.api.UserController.login
 
 # Map static resources from the /public folder to the /assets URL path
