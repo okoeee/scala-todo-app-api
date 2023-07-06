@@ -2,14 +2,16 @@ package service
 
 import json.reads.JsValueCreateCategory
 import lib.model.Category
-import lib.model.Category.CategoryColor
 import lib.persistence.onMySQL.CategoryRepository
 import model.ViewValueCategory
+import play.api.Logger
 
 import scala.concurrent.Future
 import scala.concurrent.ExecutionContext.Implicits.global
 
 object CategoryService {
+
+  private val logger = Logger(this.getClass)
 
   def get(
     categoryId: Category.Id
@@ -32,12 +34,15 @@ object CategoryService {
     val categoryWithNoId = Category(
       name = categoryFormData.name,
       slug = categoryFormData.slug,
-      categoryColor = CategoryColor(code = categoryFormData.categoryId)
+      categoryColor = categoryFormData.categoryColorId
     )
     CategoryRepository.add(categoryWithNoId).map { _ =>
+      logger.info("カテゴリを作成しました")
       Right("カテゴリを作成しました")
     } recover {
-      case _: Exception => Left("カテゴリの作成に失敗しました")
+      case e: Exception =>
+        logger.error("カテゴリの作成に失敗しました", e)
+        Left("カテゴリの作成に失敗しました")
     }
   }
 
@@ -52,13 +57,16 @@ object CategoryService {
           _.copy(
             name = categoryFormData.name,
             slug = categoryFormData.slug,
-            categoryColor = CategoryColor(code = categoryFormData.categoryId)
+            categoryColor = categoryFormData.categoryColorId
           )
         )
         CategoryRepository.update(updatedCategory).map { _ =>
+          logger.info("カテゴリを更新しました")
           Right("カテゴリを更新しました")
         } recover {
-          case _: Exception => Left("カテゴリの更新に失敗しました")
+          case e: Exception =>
+            logger.error("カテゴリの更新に失敗しました", e)
+            Left("カテゴリの更新に失敗しました")
         }
     }
   }
@@ -72,10 +80,13 @@ object CategoryService {
           case Some(embeddedCategory) =>
             TodoService.updateTodosOfNoneCategory(embeddedCategory.id).map {
               _ =>
+                logger.info("カテゴリを削除しました")
                 Right("カテゴリを削除しました")
             }
         } recover {
-          case _: Exception => Left("カテゴリの削除に失敗しました")
+          case e: Exception =>
+            logger.info("カテゴリの削除に失敗しました", e)
+            Left("カテゴリの削除に失敗しました")
         }
     }
   }

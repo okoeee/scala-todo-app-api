@@ -4,8 +4,6 @@ import json.JsonResponse
 import json.reads.JsValueCreateCategory
 import json.writes.JsValueCategoryListItem
 import lib.model.Category
-import lib.model.Category.CategoryColor
-import lib.persistence.onMySQL.CategoryRepository
 import play.api.libs.json.{JsError, JsValue, Json}
 import play.api.mvc.{Action, AnyContent, BaseController, ControllerComponents}
 import service.CategoryService
