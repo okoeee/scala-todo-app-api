@@ -1,5 +1,6 @@
 package json.reads
 
+import ixias.util.json.JsonEnvReads
 import lib.model.{Category, Todo}
 import play.api.libs.functional.syntax.toFunctionalBuilderOps
 import play.api.libs.json.{JsPath, Reads}
@@ -11,13 +12,12 @@ case class JsValueUpdateTodo(
   status: Todo.Status
 )
 
-object JsValueUpdateTodo {
+object JsValueUpdateTodo extends JsonEnvReads {
   implicit val reads: Reads[JsValueUpdateTodo] = (
     (JsPath \ "title").read[String] and
       (JsPath \ "body").read[String] and
       (JsPath \ "categoryId")
-        .read[Long]
-        .map(categoryId => Category.Id(categoryId)) and
-      (JsPath \ "status").read[Short].map(status => Todo.Status(status))
+        .read[Category.Id](idAsNumberReads[Category.Id]) and
+      (JsPath \ "status").read[Todo.Status](enumReads[Todo.Status](Todo.Status))
   )(JsValueUpdateTodo.apply _)
 }
