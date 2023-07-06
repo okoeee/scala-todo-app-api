@@ -15,7 +15,7 @@ object JsValueCreateCategory extends JsonEnvReads {
   implicit val reads: Reads[JsValueCreateCategory] = (
     (JsPath \ "name").read[String] and
       (JsPath \ "slug").read[String] and
-      (JsPath \ "name")
+      (JsPath \ "categoryColorId")
         .read[Category.CategoryColor](enumReads(Category.CategoryColor))
   )(JsValueCreateCategory.apply _)
 }
