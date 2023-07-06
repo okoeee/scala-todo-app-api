@@ -25,20 +25,23 @@ class UserController @Inject()(
 
   private val logger = Logger(this.getClass)
 
-  def auth(): Action[AnyContent] = AuthenticatedOrNot(authProfile) {
-    implicit req =>
-      authProfile.loggedIn match {
-        case Some(_) =>
-          Ok(
-            Json.toJson(
-              JsValueAuthResponse(isLoggedIn = true, message = "Logged in")))
-        case None =>
-          // Ok(Json.toJson(JsValueAuthResponse(isLoggedIn = false, message = "Not logged in")))
-          Ok(Json.obj("isLoggedIn" -> false, "message" -> "Not logged in"))
-      }
+  /**
+    * セッションの認証を行う
+    */
+  def verify() = AuthenticatedOrNot(authProfile) { implicit req =>
+    authProfile.loggedIn match {
+      case Some(_) =>
+        logger.info("authProfile.loggedIn success")
+        // Ok(Json.toJson(JsValueAuthResponse(isLoggedIn = true, message = "Logged in")))
+        Ok(Json.obj("isLoggedIn" -> true, "message" -> "Logged in"))
+      case None =>
+        logger.info("authProfile.loggedIn failed")
+        // Ok(Json.toJson(JsValueAuthResponse(isLoggedIn = false, message = "Not logged in")))
+        Ok(Json.obj("isLoggedIn" -> false, "message" -> "Not logged in"))
+    }
   }
 
-  def login(): Action[JsValue] = Action(parse.json).async { implicit req =>
+  def login() = Action(parse.json).async { implicit req =>
     req.body
       .validate[JsValueLogin]
       .fold(
@@ -52,6 +55,7 @@ class UserController @Inject()(
               case Left(msg) => Future.successful(JsonResponse.badRequest(msg))
               case Right(userId) =>
                 authProfile.loginSucceeded(userId, { _ =>
+                  logger.info("ログインに成功しました")
                   JsonResponse.success("Logged in")
                 }) recover {
                   case e: Exception =>
