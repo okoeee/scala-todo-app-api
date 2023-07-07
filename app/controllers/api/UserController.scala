@@ -4,7 +4,7 @@ import forms.LoginForm
 import ixias.play.api.auth.mvc.AuthExtensionMethods
 import json.JsonResponse
 import json.reads.JsValueLogin
-import json.writes.JsValueAuthResponse
+import json.writes.{JsValueAuthResponse, JsValueUser}
 import mvc.auth.UserAuthProfile
 import play.api.Logger
 import play.api.libs.json.{JsValue, Json}
@@ -32,12 +32,14 @@ class UserController @Inject()(
     authProfile.loggedIn match {
       case Some(_) =>
         logger.info("authProfile.loggedIn success")
-        // Ok(Json.toJson(JsValueAuthResponse(isLoggedIn = true, message = "Logged in")))
-        Ok(Json.obj("isLoggedIn" -> true, "message" -> "Logged in"))
+        Ok(
+          Json.toJson(
+            JsValueAuthResponse(isLoggedIn = true, message = "Logged in")))
       case None =>
         logger.info("authProfile.loggedIn failed")
-        // Ok(Json.toJson(JsValueAuthResponse(isLoggedIn = false, message = "Not logged in")))
-        Ok(Json.obj("isLoggedIn" -> false, "message" -> "Not logged in"))
+        Ok(
+          Json.toJson(
+            JsValueAuthResponse(isLoggedIn = false, message = "Not logged in")))
     }
   }
 
@@ -65,6 +67,28 @@ class UserController @Inject()(
             }
         }
       )
+  }
+
+//  def logout() = Authenticated(authProfile).async { implicit req =>
+//    authProfile.logoutSucceeded { _ =>
+//      logger.info("ログアウトに成功しました")
+//      JsonResponse.success("Logged out")
+//    } recover {
+//      case e: Exception =>
+//        logger.error("ログアウトに失敗しました", e)
+//        JsonResponse.internalServerError("ログアウトに失敗しました")
+//    }
+//  }
+
+  def show(): Action[AnyContent] = Authenticated(authProfile) { implicit req =>
+    authProfile.loggedIn match {
+      case Some(user) =>
+        logger.info("UserController.show success")
+        Ok(Json.toJson(JsValueUser(user.id, user.v.name, user.v.email)))
+      case None =>
+        logger.info("UserController.show failed")
+        JsonResponse.badRequest("Not logged in")
+    }
   }
 
 }

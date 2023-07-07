@@ -4,7 +4,7 @@ import ixias.util.json.JsonEnvWrites
 import lib.model.{Category, Todo}
 import model.ViewValueTodo
 import play.api.libs.functional.syntax.{toFunctionalBuilderOps, unlift}
-import play.api.libs.json.{JsPath, JsValue, Json, Writes}
+import play.api.libs.json.{JsPath, Writes}
 
 case class JsValueTodoListItem(
   id: Todo.Id,

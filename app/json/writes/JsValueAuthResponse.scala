@@ -10,7 +10,4 @@ case class JsValueAuthResponse(
 object JsValueAuthResponse {
   implicit val writes: Writes[JsValueAuthResponse] =
     Json.writes[JsValueAuthResponse]
-
-  def apply(isLoggedIn: Boolean, message: String): JsValueAuthResponse =
-    JsValueAuthResponse(isLoggedIn, message)
 }
