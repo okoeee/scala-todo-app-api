@@ -69,16 +69,20 @@ class UserController @Inject()(
       )
   }
 
-//  def logout() = Authenticated(authProfile).async { implicit req =>
-//    authProfile.logoutSucceeded { _ =>
-//      logger.info("ログアウトに成功しました")
-//      JsonResponse.success("Logged out")
-//    } recover {
-//      case e: Exception =>
-//        logger.error("ログアウトに失敗しました", e)
-//        JsonResponse.internalServerError("ログアウトに失敗しました")
-//    }
-//  }
+  def logout() = Authenticated(authProfile).async { implicit req =>
+    authProfile.loggedIn match {
+      case None =>
+        logger.info("UserController.logout failed")
+        Future.successful(JsonResponse.badRequest("Not logged in"))
+      case Some(user) =>
+        authProfile.logoutSucceeded(
+          user.id, {
+            logger.info("UserController.logout success")
+            JsonResponse.success("Logged out")
+          },
+        )
+    }
+  }
 
   def show(): Action[AnyContent] = Authenticated(authProfile) { implicit req =>
     authProfile.loggedIn match {
