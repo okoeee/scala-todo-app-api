@@ -40,6 +40,7 @@ DELETE /api/category/:id controllers.api.CategoryController.removeAction(id: Lon
 GET /api/auth/verify controllers.api.UserController.verify
 + nocsrf
 POST /api/auth/login controllers.api.UserController.login
++ nocsrf
 POST /api/auth/logout controllers.api.UserController.logout
 
 ### user
