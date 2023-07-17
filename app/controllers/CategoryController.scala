@@ -2,6 +2,7 @@ package controllers
 
 import forms.CategoryForm
 import forms.CategoryForm.categoryForm
+import ixias.play.api.auth.mvc.AuthExtensionMethods
 import lib.model.Category
 import lib.model.Category.CategoryColor
 import lib.persistence.onMySQL.{CategoryRepository, TodoRepository}
@@ -9,15 +10,18 @@ import lib.persistence.onMySQL.{CategoryRepository, TodoRepository}
 import javax.inject._
 import play.api.mvc._
 import model.{ViewValueCategory, ViewValueHome}
+import mvc.auth.UserAuthProfile
 import service.{CategoryService, TodoService}
 
-import scala.concurrent.Future
-import scala.concurrent.ExecutionContext.Implicits.global
+import scala.concurrent.{ExecutionContext, Future}
 
 @Singleton
 class CategoryController @Inject()(
-  val controllerComponents: ControllerComponents)
-  extends BaseController
+  val controllerComponents: ControllerComponents,
+  val authProfile: UserAuthProfile
+)(implicit ec: ExecutionContext)
+  extends AuthExtensionMethods
+  with BaseController
   with play.api.i18n.I18nSupport {
 
   private val vv = ViewValueHome(
@@ -33,13 +37,22 @@ class CategoryController @Inject()(
       (categoryColor.code.toString, categoryColor.name)
     }
 
-  def index(): Action[AnyContent] = Action.async { implicit req =>
-    val indexVv =
-      vv.copy(jsSrc = Seq("uikit.min.js", "uikit-icons.min.js", "main.js"))
+  def index(): Action[AnyContent] = AuthenticatedOrNot(authProfile).async {
+    implicit req =>
+      authProfile.loggedIn match {
+        case Some(_) =>
+          val indexVv =
+            vv.copy(
+              jsSrc = Seq("uikit.min.js", "uikit-icons.min.js", "main.js"))
 
-    CategoryService.getViewValueCategory.map { categories =>
-      Ok(views.html.category.Index(indexVv, categories))
-    }
+          CategoryService.getViewValueCategory.map { categories =>
+            Ok(views.html.category.Index(indexVv, categories))
+          }
+        case None =>
+          Future.successful(
+            Redirect(routes.UserController.login())
+              .flashing("error" -> "ログインもしくは会員登録をしてください"))
+      }
   }
 
   def create: Action[AnyContent] = Action { implicit req =>

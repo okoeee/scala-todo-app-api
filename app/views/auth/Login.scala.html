@@ -1,0 +1,14 @@
+@import helper._
+@import forms.LoginForm
+
+@(vv: model.ViewValueCommon, logInForm: Form[LoginForm])(implicit req: RequestHeader, message: Messages, flash: Flash)
+
+@common.Default(vv){
+    @form(routes.UserController.loginAction) {
+        @CSRF.formField
+        @inputText(logInForm("email"), 'class -> "uk-input form-width")
+        @inputText(logInForm("password"), 'class -> "uk-input form-width")
+        <input type="submit" class="uk-button uk-button-default bg-white uk-margin-bottom">
+    }
+    <p><a href="/registration">会員登録はこちら</a></p>
+}

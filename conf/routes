@@ -15,18 +15,36 @@ GET /category/update/:id controllers.CategoryController.update(id: Long)
 POST /category/update/:id controllers.CategoryController.updateAction(id: Long)
 POST /category/delete/:id controllers.CategoryController.removeAction(id: Long)
 
+GET /registration controllers.UserController.registration
+POST /registration controllers.UserController.registrationAction
+GET /login controllers.UserController.login
+POST /login controllers.UserController.loginAction
+GET /logout controllers.UserController.logout
+
 ## api
+### todo
 GET /api/todo controllers.api.TodoController.index
 GET /api/todo/:id controllers.api.TodoController.show(id: Long)
 POST /api/todo controllers.api.TodoController.createAction
 PUT /api/todo/:id controllers.api.TodoController.updateAction(id: Long)
 DELETE /api/todo/:id controllers.api.TodoController.removeAction(id: Long)
 
+### category
 GET /api/category controllers.api.CategoryController.index
 GET /api/category/:id controllers.api.CategoryController.show(id: Long)
 POST /api/category controllers.api.CategoryController.createAction
 PUT /api/category/:id controllers.api.CategoryController.updateAction(id: Long)
 DELETE /api/category/:id controllers.api.CategoryController.removeAction(id: Long)
+
+### auth
+GET /api/auth/verify controllers.api.UserController.verify
++ nocsrf
+POST /api/auth/login controllers.api.UserController.login
++ nocsrf
+POST /api/auth/logout controllers.api.UserController.logout
+
+### user
+GET /api/user controllers.api.UserController.show
 
 # Map static resources from the /public folder to the /assets URL path
 GET /assets/*file controllers.Assets.versioned(path="/public", file: Asset)

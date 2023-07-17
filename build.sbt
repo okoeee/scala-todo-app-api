@@ -13,15 +13,16 @@ scalaVersion := "2.12.8"
 libraryDependencies += guice
 
 resolvers ++= Seq(
-  "Nextbeat Releases"  at "http://maven.nextbeat.net.s3-ap-northeast-1.amazonaws.com/releases"
+  "Nextbeat Releases" at "http://maven.nextbeat.net.s3-ap-northeast-1.amazonaws.com/releases"
 )
 
 libraryDependencies ++= Seq(
-  "net.ixias" %% "ixias"      % "1.1.36",
-  "net.ixias" %% "ixias-aws"  % "1.1.36",
+  "net.ixias" %% "ixias" % "1.1.36",
+  "net.ixias" %% "ixias-aws" % "1.1.36",
   "net.ixias" %% "ixias-play" % "1.1.36",
-  "mysql"          % "mysql-connector-java" % "5.1.+",
-  "ch.qos.logback" % "logback-classic"      % "1.1.+",
+  "mysql" % "mysql-connector-java" % "5.1.+",
+  "ch.qos.logback" % "logback-classic" % "1.1.+",
+  "org.mindrot" % "jbcrypt" % "0.4"
 )
 // Adds additional packages into Twirl
 //TwirlKeys.templateImports += "com.example.controllers._"
